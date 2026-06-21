@@ -2,163 +2,566 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
   <title>OHPAH</title>
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
-    body {
-      background: #0B1929;
-      min-height: 100dvh;
-      font-family: system-ui, sans-serif;
+    :root {
+      --navy:    #0B1929;
+      --crimson: #8B1A1A;
+      --border:  rgba(255,255,255,0.16);
+      --sb:      44px;
+    }
+
+    html, body {
+      width: 100%; height: 100%;
+      max-width: 430px; margin: 0 auto;
+      background: var(--navy); color: #fff;
+      font-family: system-ui, -apple-system, sans-serif;
       overflow: hidden;
+      -webkit-font-smoothing: antialiased;
     }
 
-    /* ── Splash overlay ── */
+    .phase {
+      position: fixed; inset: 0;
+      max-width: 430px; margin: 0 auto;
+    }
+
+    /* ══ SPLASH ══ */
     #splash {
-      position: fixed;
-      inset: 0;
-      background: #0B1929;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      z-index: 9999;
-      transition: opacity 0.9s ease;
+      background: var(--navy);
+      display: flex; align-items: center; justify-content: center;
+      z-index: 300; transition: opacity 0.7s ease;
+    }
+    #splash.fade-out { opacity: 0; pointer-events: none; }
+
+    #splash-video { height: 100dvh; width: auto; max-width: 100%; object-fit: contain; }
+
+    .dots {
+      position: absolute; bottom: 34px; left: 0; right: 0;
+      display: flex; justify-content: center; gap: 8px;
+    }
+    .dots span {
+      width: 5px; height: 5px; border-radius: 50%;
+      background: rgba(255,255,255,.38);
+      animation: dp 1.4s ease-in-out infinite;
+    }
+    .dots span:nth-child(2) { animation-delay: .2s; }
+    .dots span:nth-child(3) { animation-delay: .4s; }
+    @keyframes dp {
+      0%,100% { opacity:.2; transform:scale(.7); }
+      50%      { opacity:1;  transform:scale(1);  }
     }
 
-    #splash.fade-out {
-      opacity: 0;
+    /* ══ TRANSITION ══ */
+    #transition-screen {
+      background: var(--navy);
+      display: flex; align-items: center; justify-content: center;
+      z-index: 200; opacity: 0; pointer-events: none;
+      transition: opacity 0.4s ease;
+    }
+    #transition-screen.active { opacity: 1; pointer-events: auto; }
+    #transition-screen.out    { opacity: 0; pointer-events: none; }
+    #transition-video { height: 100dvh; width: auto; max-width: 100%; object-fit: contain; }
+
+    /* ══ DASHBOARD ══ */
+    #dashboard {
+      display: flex; flex-direction: column; height: 100dvh;
+      z-index: 100; opacity: 0; transition: opacity 0.65s ease;
+    }
+    #dashboard.visible { opacity: 1; }
+
+    /* Header */
+    .d-header {
+      height: 52px; flex-shrink: 0;
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 0 14px;
+      border-bottom: 1px solid var(--border);
+      font-size: 13px; font-weight: 500; letter-spacing: .04em;
+    }
+
+    /* Body */
+    .d-body {
+      flex: 1; position: relative;
+      display: flex; overflow: hidden;
+    }
+
+    /* ── Sidebars ── */
+    .sidebar {
+      width: var(--sb); flex-shrink: 0;
+      display: flex; flex-direction: column;
+      align-items: center; justify-content: space-around;
+      padding: 10px 0;
+    }
+    .l-bar { border-right: 1px solid var(--border); }
+    .r-bar { border-left:  1px solid var(--border); }
+
+    .vtab {
+      all: unset; cursor: pointer;
+      writing-mode: vertical-rl; transform: rotate(180deg);
+      font-size: 10px; font-weight: 700; letter-spacing: .1em;
+      color: rgba(255,255,255,.5); padding: 8px 4px;
+      text-transform: uppercase; border-radius: 3px;
+      transition: color .2s;
+    }
+    .vtab:hover  { color: rgba(255,255,255,.85); }
+    .vtab.active { color: #fff; }
+    .call-tab { background: #fff; color: #0B1929 !important; padding: 10px 5px; }
+
+    /* ── Center content ── */
+    .d-center {
+      flex: 1; display: flex; flex-direction: column;
+      padding: 0 8px 8px 12px; overflow: hidden;
+    }
+
+    /* Top tabs */
+    .top-tabs {
+      display: flex; flex-shrink: 0;
+      border-bottom: 1px solid var(--border);
+      margin-bottom: 6px;
+    }
+    .ttab {
+      all: unset; cursor: pointer;
+      font-size: 12px; font-weight: 500; color: rgba(255,255,255,.4);
+      padding: 7px 13px; border-bottom: 2px solid transparent; margin-bottom: -1px;
+      transition: color .2s, border-color .2s;
+    }
+    .ttab.active { color: #fff; border-bottom-color: #fff; }
+
+    /* ── Metric regions (dashed boxes) ── */
+    .metric-region {
+      flex: 1; min-height: 0;
+      border: 1.5px dashed rgba(255,255,255,.28);
+      border-radius: 6px;
+      padding: 10px 12px;
+      display: flex; flex-direction: column;
+    }
+
+    /* Upper box: number on top, tiles on bottom */
+    .upper-region {
+      margin-bottom: 2px;
+      justify-content: space-between;
+    }
+
+    /* Lower box: tiles on top, number on bottom */
+    .lower-region {
+      margin-top: 2px;
+      justify-content: space-between;
+    }
+
+    /* Large number + label */
+    .num-display {
+      flex: 1; min-height: 0;
+      display: flex; flex-direction: column;
+      justify-content: center;
+      transition: opacity 0.25s ease;
+    }
+
+    .big-num {
+      font-size: clamp(48px, 15vw, 70px);
+      font-weight: 700; font-style: italic;
+      font-family: Georgia, 'Times New Roman', serif;
+      color: var(--crimson); line-height: 1;
+    }
+
+    .m-label {
+      font-size: 15px; font-weight: 500; color: #fff; margin-top: 5px;
+    }
+
+    /* Metric tiles */
+    .tile-row {
+      display: flex; gap: 5px; flex-shrink: 0;
+    }
+
+    .tile {
+      all: unset; cursor: pointer;
+      flex: 1; text-align: center;
+      font-size: 10px; font-weight: 700; letter-spacing: .05em;
+      color: rgba(255,255,255,.65);
+      border: 1px solid rgba(255,255,255,.28);
+      border-radius: 4px; padding: 5px 2px;
+      text-transform: uppercase;
+      transition: background .18s, color .18s, border-color .18s;
+      white-space: nowrap;
+    }
+
+    .tile.active {
+      background: #fff; color: var(--navy); border-color: #fff;
+    }
+
+    /* FAB spacer — creates visual gap between boxes for the FAB to sit in */
+    .fab-gap { height: 58px; flex-shrink: 0; }
+
+    /* FAB — absolutely positioned over d-body, centered vertically */
+    .fab {
+      all: unset; cursor: pointer;
+      position: absolute;
+      left: calc(var(--sb) - 27px); /* overlaps left sidebar edge */
+      top: 50%; transform: translateY(-50%);
+      width: 54px; height: 54px; border-radius: 50%;
+      background: var(--crimson); color: #fff;
+      font-size: 30px; font-weight: 300;
+      display: flex; align-items: center; justify-content: center;
+      box-shadow: 0 4px 20px rgba(139,26,26,.5);
+      z-index: 10;
+    }
+
+    /* Arc SVG */
+    #arc-svg {
+      position: absolute; inset: 0;
+      width: 100%; height: 100%;
       pointer-events: none;
     }
 
-    /* Video: fills vertically on mobile, contained on desktop */
-    #splash-video {
-      height: 100dvh;
-      width: auto;
-      max-width: 100vw;
-      object-fit: contain;
-      display: block;
+    /* Bottom nav */
+    .d-nav {
+      height: 58px; flex-shrink: 0;
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 0 22px; border-top: 1px solid var(--border);
     }
-
-    @media (min-width: 640px) {
-      #splash-video {
-        height: 100dvh;
-        max-height: 100dvh;
-      }
+    .nav-btn {
+      all: unset; cursor: pointer; width: 34px; height: 34px;
+      display: flex; align-items: center; justify-content: center;
+      color: rgba(255,255,255,.7);
     }
-
-    /* ── Loading dots ── */
-    .dots {
-      position: absolute;
-      bottom: 36px;
-      left: 0;
-      right: 0;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      gap: 8px;
-    }
-
-    .dot {
-      width: 5px;
-      height: 5px;
-      border-radius: 50%;
-      background: rgba(255, 255, 255, 0.45);
-      animation: dot-pulse 1.4s ease-in-out infinite;
-    }
-
-    .dot:nth-child(2) { animation-delay: 0.2s; }
-    .dot:nth-child(3) { animation-delay: 0.4s; }
-
-    @keyframes dot-pulse {
-      0%, 100% { opacity: 0.25; transform: scale(0.75); }
-      50%       { opacity: 1;    transform: scale(1);    }
-    }
-
-    /* ── App content (hidden until splash exits) ── */
-    #app {
-      opacity: 0;
-      transition: opacity 0.6s ease 0.2s;
-      min-height: 100dvh;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      color: white;
-    }
-
-    #app.visible {
-      opacity: 1;
+    .wordmark {
+      font-size: 21px; font-weight: 800; letter-spacing: .14em; color: #fff;
     }
   </style>
 </head>
 <body>
 
-  <!-- Splash screen -->
-  <div id="splash">
-    <video
-      id="splash-video"
-      src="assets/splash.mp4"
-      autoplay
-      muted
-      loop
-      playsinline
-      preload="auto"
-    ></video>
-    <div class="dots">
-      <span class="dot"></span>
-      <span class="dot"></span>
-      <span class="dot"></span>
+<!-- ══ PHASE 1: SPLASH ══ -->
+<div id="splash" class="phase">
+  <video id="splash-video" src="assets/splash.mp4"
+         autoplay muted loop playsinline preload="auto"></video>
+  <div class="dots"><span></span><span></span><span></span></div>
+</div>
+
+<!-- ══ PHASE 2: TRANSITION ══ -->
+<div id="transition-screen" class="phase">
+  <video id="transition-video" src="assets/transition.mp4"
+         muted playsinline preload="auto"></video>
+</div>
+
+<!-- ══ PHASE 3: DASHBOARD ══ -->
+<div id="dashboard" class="phase">
+
+  <header class="d-header">
+    <span id="user-info">FF M. Harvey – SCFD</span>
+    <span id="clock">--:--</span>
+  </header>
+
+  <div class="d-body">
+
+    <!-- Left sidebar -->
+    <div class="sidebar l-bar">
+      <button class="vtab">FES</button>
+      <button class="vtab">WII</button>
+      <button class="vtab">Sleep</button>
+      <button class="vtab call-tab">Call</button>
     </div>
+
+    <!-- Center -->
+    <div class="d-center">
+
+      <div class="top-tabs">
+        <button class="ttab active">Daily</button>
+        <button class="ttab">Lifetime</button>
+        <button class="ttab">Custom</button>
+      </div>
+
+      <!-- ── UPPER: OHPAH metrics — number always visible ── -->
+      <div class="metric-region upper-region">
+        <!-- Large number — top of box, always shown -->
+        <div class="num-display" id="upper-num">
+          <span class="big-num"  id="upper-value">4</span>
+          <span class="m-label"  id="upper-label">FES</span>
+        </div>
+        <!-- Tile selectors — bottom of box -->
+        <div class="tile-row">
+          <button class="tile active"
+            data-region="upper" data-metric="FES"   data-value="4">FES</button>
+          <button class="tile"
+            data-region="upper" data-metric="SDI"   data-value="3.2">SDI</button>
+          <button class="tile"
+            data-region="upper" data-metric="WII"   data-value="8">WII</button>
+          <button class="tile"
+            data-region="upper" data-metric="Total" data-value="15.2">Total</button>
+        </div>
+      </div>
+
+      <!-- Gap where FAB lives (FAB is absolute in d-body) -->
+      <div class="fab-gap"></div>
+
+      <!-- ── LOWER: HealthKit metrics — number only on press ── -->
+      <div class="metric-region lower-region">
+        <!-- Tile selectors — top of box -->
+        <div class="tile-row">
+          <button class="tile"
+            data-region="lower" data-metric="HR"    data-value="72 bpm">HR</button>
+          <button class="tile"
+            data-region="lower" data-metric="Sleep" data-value="6.5">Sleep</button>
+          <button class="tile"
+            data-region="lower" data-metric="Steps" data-value="5437">Steps</button>
+          <button class="tile"
+            data-region="lower" data-metric="Cal"   data-value="2341">Cal</button>
+        </div>
+        <!-- Large number — bottom of box, hidden until tile pressed -->
+        <div class="num-display" id="lower-num" style="opacity:0">
+          <span class="big-num" id="lower-value"></span>
+          <span class="m-label" id="lower-label"></span>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- FAB — absolute in d-body, at vertical midpoint -->
+    <button class="fab" id="fab-btn">+</button>
+
+    <!-- Arc SVG — absolute overlay -->
+    <svg id="arc-svg" xmlns="http://www.w3.org/2000/svg"></svg>
+
+    <!-- Right sidebar -->
+    <div class="sidebar r-bar">
+      <button class="vtab">Cal</button>
+      <button class="vtab">Steps</button>
+      <button class="vtab">Heart</button>
+      <button class="vtab">Calorie</button>
+    </div>
+
   </div>
 
-  <!-- Main app shell (swap this out for your framework root) -->
-  <div id="app">
-    <p style="color: rgba(255,255,255,0.3); font-size: 14px; letter-spacing: 0.1em;">APP CONTENT</p>
-  </div>
+  <nav class="d-nav">
+    <button class="nav-btn" aria-label="Saved">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none"
+           stroke="currentColor" stroke-width="2" stroke-linecap="round">
+        <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/>
+      </svg>
+    </button>
+    <div class="wordmark">OHPΔH</div>
+    <button class="nav-btn" aria-label="Menu">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none"
+           stroke="currentColor" stroke-width="2" stroke-linecap="round">
+        <line x1="3" y1="6"  x2="21" y2="6"/>
+        <line x1="3" y1="12" x2="21" y2="12"/>
+        <line x1="3" y1="18" x2="21" y2="18"/>
+      </svg>
+    </button>
+  </nav>
 
-  <script>
-    const splash = document.getElementById('splash');
-    const app    = document.getElementById('app');
-    const video  = document.getElementById('splash-video');
+</div>
 
-    // Minimum time the splash is shown (ms) — lets the animation breathe
-    const MIN_DURATION = 3200;
+<script>
+/* ════════════════════════════════
+   CLOCK (live, ticking)
+════════════════════════════════ */
+function tick() {
+  const now = new Date();
+  const h = String(now.getHours()).padStart(2,'0');
+  const m = String(now.getMinutes()).padStart(2,'0');
+  document.getElementById('clock').textContent = `${h}:${m}`;
+}
+tick();
+setInterval(tick, 1000);
 
-    let minElapsed  = false;
-    let appReady    = false;
+/* ════════════════════════════════
+   TILE INTERACTION
+════════════════════════════════ */
+document.querySelectorAll('.tile').forEach(btn => {
+  btn.addEventListener('click', () => {
+    const region   = btn.dataset.region;
+    const isActive = btn.classList.contains('active');
 
-    function tryDismiss() {
-      if (!minElapsed || !appReady) return;
-      splash.classList.add('fade-out');
-      app.classList.add('visible');
-      setTimeout(() => splash.remove(), 1000);
-    }
+    // Deactivate all tiles in this region first
+    document.querySelectorAll(`.tile[data-region="${region}"]`)
+      .forEach(t => t.classList.remove('active'));
 
-    // Enforce minimum display time
-    setTimeout(() => {
-      minElapsed = true;
-      tryDismiss();
-    }, MIN_DURATION);
+    if (region === 'upper') {
+      // Upper always shows a number — if re-tapping active tile, stay on FES default
+      const target = isActive
+        ? document.querySelector('.tile[data-region="upper"][data-metric="FES"]')
+        : btn;
+      target.classList.add('active');
+      document.getElementById('upper-value').textContent = target.dataset.value;
+      document.getElementById('upper-label').textContent = target.dataset.metric;
 
-    // Signal app ready — replace / extend this with your real loading logic
-    function onAppReady() {
-      appReady = true;
-      tryDismiss();
-    }
-
-    // Demo: treat the video's first full loop as the loading window
-    // In production, call onAppReady() when your data/assets are loaded.
-    video.addEventListener('timeupdate', function handler() {
-      if (video.currentTime > 0 && video.duration && video.currentTime >= video.duration - 0.1) {
-        video.removeEventListener('timeupdate', handler);
-        onAppReady();
+    } else {
+      // Lower — toggle visibility
+      const numEl = document.getElementById('lower-num');
+      if (isActive) {
+        numEl.style.opacity = '0';
+      } else {
+        btn.classList.add('active');
+        document.getElementById('lower-value').textContent = btn.dataset.value;
+        document.getElementById('lower-label').textContent = btn.dataset.metric;
+        numEl.style.opacity = '1';
       }
+    }
+  });
+});
+
+/* ════════════════════════════════
+   ARC GENERATOR
+   White curved rail, tick marks + 0800-format labels on the INSIDE (concave side)
+════════════════════════════════ */
+function buildArc() {
+  const svg    = document.getElementById('arc-svg');
+  const body   = document.querySelector('.d-body');
+  const W      = body.offsetWidth  || 390;
+  const H      = body.offsetHeight || 728;
+
+  while (svg.firstChild) svg.removeChild(svg.firstChild);
+  svg.setAttribute('viewBox', `0 0 ${W} ${H}`);
+
+  const ns = 'http://www.w3.org/2000/svg';
+  const mk = (tag, attrs) => {
+    const e = document.createElementNS(ns, tag);
+    for (const [k,v] of Object.entries(attrs)) e.setAttribute(k, v);
+    return e;
+  };
+
+  // ── Geometry ──
+  // Centre is off-screen to the left so the arc reads as a tall ")" shape.
+  // Rightmost point of arc sits near the right edge of the screen.
+  const CX = -15;             // circle centre x (px, in SVG coords)
+  const CY = H / 2;           // circle centre y = body midpoint
+  const R  = Math.round(W * 1.0); // radius scales with body width
+
+  // Compute half-angle so arc spans ~86% of body height
+  const halfH     = H * 0.43;
+  const halfAngle = Math.asin(Math.min(halfH / R, 0.9999)) * (180 / Math.PI);
+  const A_START   = -halfAngle;
+  const A_END     =  halfAngle;
+  const SPAN      = A_END - A_START;
+  const HOURS     = 24;
+
+  const toRad     = d => d * Math.PI / 180;
+  const ptOn      = angleDeg => ({
+    x: CX + R * Math.cos(toRad(angleDeg)),
+    y: CY + R * Math.sin(toRad(angleDeg)),
+  });
+  const hourToAngle = h => A_START + (h / HOURS) * SPAN;
+
+  const arcPath = (h1, h2) => {
+    const p1  = ptOn(hourToAngle(h1));
+    const p2  = ptOn(hourToAngle(h2));
+    const deg = ((h2 - h1) / HOURS) * SPAN;
+    return `M${p1.x.toFixed(2)} ${p1.y.toFixed(2)} `
+         + `A${R} ${R} 0 ${deg > 180 ? 1 : 0} 1 `
+         + `${p2.x.toFixed(2)} ${p2.y.toFixed(2)}`;
+  };
+
+  // ── White arc rail ──
+  svg.appendChild(mk('path', {
+    d: arcPath(0, 24),
+    fill: 'none',
+    stroke: 'rgba(255,255,255,0.82)',
+    'stroke-width': '2',
+  }));
+
+  // ── Inside ticks + labels ──
+  // "Inside" = the concave (left-facing) side of the arc.
+  // Ticks extend inward (toward the circle's centre) from the arc's inner edge.
+  // Labels sit just past the tick end, right-aligned so they read leftward.
+
+  const LABELS = [
+    '0800','0900','1000','1100','1200',
+    '1300','1400','1500','1600','1700','1800',
+    '1900','2000','2100','2200','2300',
+    '0000','0100','0200','0300','0400',
+    '0500','0600','0700','0800',
+  ];
+
+  const STROKE_HALF = 1;          // half of arc stroke-width
+  const INNER_EDGE  = R - STROKE_HALF;
+  const TICK_LEN    = 10;
+  const LABEL_PAD   = 5;          // gap between tick end and label right-edge
+
+  LABELS.forEach((label, h) => {
+    const ang  = hourToAngle(h);
+    const a    = toRad(ang);
+    const dx   = Math.cos(a);   // unit vector away from centre
+    const dy   = Math.sin(a);
+
+    // Tick: starts at arc inner edge, goes inward
+    const tx1 = CX + INNER_EDGE * dx;
+    const ty1 = CY + INNER_EDGE * dy;
+    const tx2 = CX + (INNER_EDGE - TICK_LEN) * dx;
+    const ty2 = CY + (INNER_EDGE - TICK_LEN) * dy;
+
+    // Label anchor: right-edge of text lands just past tick end
+    const lr = INNER_EDGE - TICK_LEN - LABEL_PAD;
+    const lx = CX + lr * dx;
+    const ly = CY + lr * dy;
+
+    svg.appendChild(mk('line', {
+      x1: tx1.toFixed(1), y1: ty1.toFixed(1),
+      x2: tx2.toFixed(1), y2: ty2.toFixed(1),
+      stroke: 'rgba(255,255,255,.5)',
+      'stroke-width': '1.2',
+    }));
+
+    const t = mk('text', {
+      x: lx.toFixed(1),
+      y: ly.toFixed(1),
+      fill: 'rgba(255,255,255,.75)',
+      'font-size': '8.5',
+      'font-family': 'ui-monospace, monospace, system-ui',
+      'dominant-baseline': 'middle',
+      'text-anchor': 'end',  // right-edge at anchor; text extends inward (left)
     });
+    t.textContent = label;
+    svg.appendChild(t);
+  });
+}
 
-    // Fallback: if video never fires (autoplay blocked, etc.) still dismiss
-    setTimeout(onAppReady, 6000);
-  </script>
+window.addEventListener('load',   buildArc);
+window.addEventListener('resize', buildArc);
 
+/* ════════════════════════════════
+   PHASE CONTROLLER
+════════════════════════════════ */
+const splash    = document.getElementById('splash');
+const splashVid = document.getElementById('splash-video');
+const transEl   = document.getElementById('transition-screen');
+const transVid  = document.getElementById('transition-video');
+const dashboard = document.getElementById('dashboard');
+
+let splashDone = false;
+
+// Advance after the first full loop of the splash animation
+splashVid.addEventListener('timeupdate', function handler() {
+  if (splashDone) return;
+  if (splashVid.duration && splashVid.currentTime >= splashVid.duration - 0.18) {
+    splashDone = true;
+    splashVid.removeEventListener('timeupdate', handler);
+    goToTransition();
+  }
+});
+setTimeout(() => { if (!splashDone) { splashDone = true; goToTransition(); } }, 5500);
+
+function goToTransition() {
+  splash.classList.add('fade-out');
+  setTimeout(() => {
+    splash.style.display = 'none';
+    transEl.classList.add('active');
+    transVid.play().catch(goToDashboard);
+  }, 700);
+}
+
+transVid.addEventListener('ended', goToDashboard);
+transVid.addEventListener('error', goToDashboard);
+setTimeout(() => { if (!dashboard.classList.contains('visible')) goToDashboard(); }, 15000);
+
+function goToDashboard() {
+  if (dashboard.classList.contains('visible')) return;
+  transEl.classList.remove('active');
+  transEl.classList.add('out');
+  setTimeout(() => { transEl.style.display = 'none'; }, 500);
+  dashboard.classList.add('visible');
+}
+</script>
 </body>
 </html>
