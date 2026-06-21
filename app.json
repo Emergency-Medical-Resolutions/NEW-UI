@@ -1,0 +1,31 @@
+{
+  "expo": {
+    "name": "OHPAH",
+    "slug": "ohpah-new-ui",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "scheme": "ohpah",
+    "userInterfaceStyle": "dark",
+    "backgroundColor": "#0B1929",
+    "splash": {
+      "backgroundColor": "#0B1929"
+    },
+    "ios": {
+      "supportsTablet": false,
+      "bundleIdentifier": "com.ohpah.newui"
+    },
+    "android": {
+      "adaptiveIcon": {
+        "backgroundColor": "#0B1929"
+      },
+      "package": "com.ohpah.newui"
+    },
+    "plugins": [
+      "expo-router",
+      "expo-video"
+    ],
+    "experiments": {
+      "typedRoutes": true
+    }
+  }
+}
