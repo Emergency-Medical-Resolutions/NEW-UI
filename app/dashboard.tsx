@@ -35,20 +35,21 @@ import MetricBox from '../components/MetricBox';
 // ── Types ──────────────────────────────────────────────
 interface SidebarTab {
   label: string;
-  inverted?: boolean; // white bg, dark text (e.g. "Call")
+  inverted?: boolean; // white bg + dark text = active state
 }
 
-// ── Static data (replace with real data layer later) ──
-const LEFT_TABS: SidebarTab[] = [
+// ── Static data ────────────────────────────────────────
+// Single left sidebar: OHPAH metrics above FAB, HealthKit below
+const UPPER_TABS: SidebarTab[] = [
   { label: 'FES' },
   { label: 'WII' },
   { label: 'Sleep' },
   { label: 'Call', inverted: true },
 ];
 
-const RIGHT_TABS: SidebarTab[] = [
+const LOWER_TABS: SidebarTab[] = [
   { label: 'Cal' },
-  { label: 'Steps' },
+  { label: 'Steps', inverted: true },
   { label: 'Heart' },
   { label: 'Calorie' },
 ];
@@ -114,9 +115,21 @@ export default function Dashboard() {
       {/* ── Body ── */}
       <View style={styles.body} onLayout={onBodyLayout}>
 
-        {/* Left sidebar */}
+        {/* Left sidebar — OHPAH tabs above FAB, HealthKit tabs below */}
         <View style={[styles.sidebar, styles.leftSidebar]}>
-          {LEFT_TABS.map((tab) => (
+          {UPPER_TABS.map((tab) => (
+            <View
+              key={tab.label}
+              style={[styles.vtabWrap, tab.inverted && styles.vtabInverted]}
+            >
+              <Text style={[styles.vtabText, tab.inverted && styles.vtabTextInverted]}>
+                {tab.label}
+              </Text>
+            </View>
+          ))}
+          {/* FAB gap — keeps lower tabs pushed to match body center */}
+          <View style={styles.sidebarFabGap} />
+          {LOWER_TABS.map((tab) => (
             <View
               key={tab.label}
               style={[styles.vtabWrap, tab.inverted && styles.vtabInverted]}
@@ -168,15 +181,6 @@ export default function Dashboard() {
             }
           />
 
-        </View>
-
-        {/* Right sidebar */}
-        <View style={[styles.sidebar, styles.rightSidebar]}>
-          {RIGHT_TABS.map((tab) => (
-            <View key={tab.label} style={styles.vtabWrap}>
-              <Text style={styles.vtabText}>{tab.label}</Text>
-            </View>
-          ))}
         </View>
 
         {/* Arc timeline — absolute overlay */}
@@ -231,15 +235,18 @@ const styles = StyleSheet.create({
   },
   headerName: {
     color: COLORS.white,
-    fontSize: 13,
+    fontSize: 12,
     fontWeight: '500',
-    letterSpacing: 0.4,
+    letterSpacing: 1,
+    textTransform: 'uppercase',
+    fontFamily: 'JetBrainsMono_500Medium',
   },
   headerClock: {
     color: COLORS.white,
-    fontSize: 13,
+    fontSize: 12,
     fontWeight: '500',
-    letterSpacing: 0.4,
+    letterSpacing: 1,
+    fontFamily: 'JetBrainsMono_500Medium',
   },
 
   // Body
@@ -249,31 +256,30 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
   },
 
-  // Sidebars
+  // Sidebar
   sidebar: {
     width: LAYOUT.sidebarWidth,
     flexShrink: 0,
     alignItems: 'center',
-    justifyContent: 'space-around',
-    paddingVertical: 12,
+    justifyContent: 'space-between',
+    paddingVertical: 8,
   },
   leftSidebar: {
     borderRightWidth: 1,
     borderRightColor: COLORS.border,
   },
-  rightSidebar: {
-    borderLeftWidth: 1,
-    borderLeftColor: COLORS.border,
+  sidebarFabGap: {
+    height: LAYOUT.fabSize + 8,
+    flexShrink: 0,
   },
   vtabWrap: {
-    paddingVertical: 8,
-    paddingHorizontal: 4,
-    borderRadius: 3,
+    width: LAYOUT.sidebarWidth,
+    height: 44,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   vtabInverted: {
     backgroundColor: COLORS.white,
-    paddingVertical: 10,
-    paddingHorizontal: 5,
   },
   vtabText: {
     color: COLORS.dimText,
@@ -281,8 +287,8 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     letterSpacing: 1,
     textTransform: 'uppercase',
-    // Rotate text vertically
     transform: [{ rotate: '-90deg' }],
+    fontFamily: 'JetBrainsMono_500Medium',
   },
   vtabTextInverted: {
     color: COLORS.navy,
@@ -383,8 +389,9 @@ const styles = StyleSheet.create({
   },
   wordmark: {
     color: COLORS.white,
-    fontSize: 21,
+    fontSize: 22,
     fontWeight: '800',
-    letterSpacing: 2,
+    letterSpacing: 3,
+    fontFamily: 'HankenGrotesk_800ExtraBold',
   },
 });
