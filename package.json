@@ -1,28 +1,24 @@
 {
-  "name": "ohpah-new-ui",
-  "version": "1.0.0",
-  "main": "expo-router/entry",
+  "name": "ohpah-ui",
+  "private": true,
+  "sideEffects": false,
+  "type": "module",
   "scripts": {
-    "start": "expo start",
-    "android": "expo start --android",
-    "ios": "expo start --ios",
-    "web": "expo start --web",
-    "dev": "expo start --web"
+    "dev": "vite dev",
+    "build": "vite build",
+    "preview": "vite preview"
   },
   "dependencies": {
-    "expo": "~52.0.0",
-    "expo-blur": "^56.0.3",
-    "expo-linear-gradient": "^56.0.4",
-    "expo-router": "~4.0.0",
-    "expo-status-bar": "~2.0.0",
-    "expo-video": "~2.0.0",
-    "react": "18.3.1",
-    "react-native": "0.76.3",
-    "react-native-svg": "^15.8.0"
+    "@tanstack/react-query": "^5.83.0",
+    "@tanstack/react-router": "^1.168.25",
+    "@tanstack/react-start": "^1.167.50",
+    "react": "^19.2.0",
+    "react-dom": "^19.2.0"
   },
   "devDependencies": {
-    "@babel/core": "^7.25.2",
-    "@types/react": "~18.3.0",
-    "typescript": "^5.3.0"
+    "@lovable.dev/vite-tanstack-config": "2.3.2",
+    "@tanstack/router-plugin": "^1.167.28",
+    "typescript": "^5.8.3",
+    "vite": "^7.3.1"
   }
 }
