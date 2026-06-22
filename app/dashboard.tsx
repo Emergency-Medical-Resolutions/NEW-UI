@@ -1,19 +1,12 @@
 /**
- * OHPAH Dashboard — matches reference image exactly.
+ * OHPAH Dashboard — React Native implementation of V0-rendered design.
  *
- * Layout:
- *   ┌─ Header: "FF M. Harvey – SCFD"  |  "14:22" ─────────┐
- *   │ [Sidebar] [Center]              [Arc timeline]        │
- *   │  FES      Daily|Lifetime|Custom                       │
- *   │  WII      ┌─ ─ ─ ─ ─ ─ ─ ─ ┐                        │
- *   │  Sleep    │      4           │  ← OHPAH number        │
- *   │  Call ██  └─ ─ ─ ─ ─ ─ ─ ─ ┘                        │
- *   │  ●FAB                                                 │
- *   │  Cal      ┌─ ─ ─ ─ ─ ─ ─ ─ ┐                        │
- *   │  Steps ██ │    5437          │  ← HealthKit number    │
- *   │  Heart    │    Steps         │                        │
- *   │  Calorie  └─ ─ ─ ─ ─ ─ ─ ─ ┘                        │
- *   └─ Bottom nav: 🔖  OHPΔH  ☰ ──────────────────────────┘
+ * Visual spec from reference image:
+ *  - Sidebar tabs each have per-metric accent colors
+ *  - Active period tab (Daily) has terracotta background
+ *  - Numbers in warm terracotta / crimson
+ *  - Arc with red/green/amber/white call-log segments
+ *  - Bottom nav with cream OHPΔH wordmark
  */
 import React, { useEffect, useState } from 'react';
 import {
@@ -26,46 +19,80 @@ import {
 } from 'react-native';
 import ArcTimeline, { ArcSegment } from '../components/ArcTimeline';
 
-// ── Theme tokens (faithful to reference image) ────────────
+// ── Colors ────────────────────────────────────────────────
 const C = {
-  navy:         '#0B1929',
-  white:        '#FFFFFF',
-  dimText:      'rgba(255,255,255,0.45)',
-  border:       'rgba(255,255,255,0.18)',
-  dashedBorder: 'rgba(255,255,255,0.30)',
-  crimson:      '#8B1A1A',
-  activeTabBg:  '#FFFFFF',
-  activeTabText:'#0B1929',
+  navy:        '#0B2340',
+  white:       '#FFFFFF',
+  cream:       '#EDE8D0',
+  dimText:     'rgba(255,255,255,0.45)',
+  border:      'rgba(255,255,255,0.20)',
+  dashed:      'rgba(255,255,255,0.32)',
+  terracotta:  '#C0522A',  // active number + period tab
+  fabRed:      '#A63020',
+
+  // Per-tab accent colors (match V0 render)
+  accentCall:  '#5C6470',  // gray
+  accentCal:   '#0E7490',  // teal
+  accentSteps: '#D97706',  // amber
+  accentHeart: '#E5E7EB',  // light
+  accentCalorie:'#CA8A04', // gold
 };
 
 const L = {
-  sidebarWidth:    44,
+  sidebarWidth:    52,
   headerHeight:    52,
-  bottomNavHeight: 58,
-  fabSize:         54,
-  fabRadius:       27,
+  bottomNavHeight: 64,
+  fabSize:         58,
+  fabRadius:       29,
 };
 
-// ── Call-log segments visible in the reference image ──────
-// h=0 → 0800, h=24 → 0800 next day
-const CALL_SEGMENTS: ArcSegment[] = [
-  { h1: 0,   h2: 1,   color: '#8B1111' }, // red  0800–0900
-  { h1: 1,   h2: 5.5, color: '#2E6B2E' }, // green 0900–1330
-  { h1: 5.5, h2: 7,   color: '#2E6B2E' }, // green continues
-  { h1: 11,  h2: 12,  color: '#B8870A' }, // amber 1900–2000
-  { h1: 13,  h2: 16,  color: '#D8D8D8' }, // white 2100–0000
-  { h1: 17,  h2: 20,  color: '#2E6B2E' }, // green 0100–0400
-  { h1: 21,  h2: 22,  color: '#B8870A' }, // amber 0500–0600
-  { h1: 22,  h2: 24,  color: '#8B1111' }, // red   0600–0800
+// ── Tab definitions ───────────────────────────────────────
+interface Tab {
+  label: string;
+  accent: string | null; // null = default white inversion
+}
+
+const UPPER_TABS: Tab[] = [
+  { label: 'FES',   accent: null },
+  { label: 'WII',   accent: null },
+  { label: 'Sleep', accent: null },
+  { label: 'Call',  accent: C.accentCall },
 ];
 
-// ── Sidebar tabs ──────────────────────────────────────────
-const UPPER_TABS = ['FES', 'WII', 'Sleep', 'Call'];
-const LOWER_TABS = ['Cal', 'Steps', 'Heart', 'Calorie'];
+const LOWER_TABS: Tab[] = [
+  { label: 'Cal',     accent: C.accentCal },
+  { label: 'Steps',   accent: C.accentSteps },
+  { label: 'Heart',   accent: C.accentHeart },
+  { label: 'Calorie', accent: C.accentCalorie },
+];
+
+// ── Metric values ─────────────────────────────────────────
+const OHPAH_VALUES: Record<string, string> = {
+  FES: '4', WII: '8', Sleep: '6.5', Call: '4',
+};
+
+const HK_VALUES: Record<string, string> = {
+  Cal: '2341', Steps: '5437', Heart: '72', Calorie: '2341',
+};
+
+// ── Arc call-log segments (from reference image) ──────────
+const CALL_SEGMENTS: ArcSegment[] = [
+  { h1: 0,    h2: 0.8,  color: '#9B2915' }, // red   0800–0848
+  { h1: 0.8,  h2: 1.8,  color: '#2E6B2E' }, // green 0848–0948 (short gap)
+  { h1: 1.8,  h2: 5.5,  color: '#2E6B2E' }, // green 0948–1330
+  { h1: 5.5,  h2: 6.0,  color: '#9B2915' }, // red   1330–1400 (short)
+  { h1: 6.0,  h2: 9.5,  color: '#2E6B2E' }, // green 1400–1730
+  { h1: 9.5,  h2: 11.0, color: '#2E6B2E' }, // green continues
+  { h1: 11.0, h2: 12.0, color: '#C9A227' }, // amber 1900–2000
+  { h1: 12.0, h2: 16.0, color: '#D8D8D8' }, // white 2000–0000
+  { h1: 16.0, h2: 19.0, color: '#2E6B2E' }, // green 0000–0300
+  { h1: 19.0, h2: 20.5, color: '#C9A227' }, // amber 0300–0430
+  { h1: 20.5, h2: 22.0, color: '#2E6B2E' }, // green 0430–0600
+  { h1: 22.0, h2: 24.0, color: '#9B2915' }, // red   0600–0800
+];
 
 // ── Dashboard ─────────────────────────────────────────────
 export default function Dashboard() {
-  // Live clock
   const [time, setTime] = useState('');
   useEffect(() => {
     const fmt = () => {
@@ -77,12 +104,10 @@ export default function Dashboard() {
     return () => clearInterval(id);
   }, []);
 
-  // Active tabs
-  const [upperActive, setUpperActive] = useState('Call');
+  const [upperActive, setUpperActive] = useState('FES');
   const [lowerActive, setLowerActive] = useState<string|null>('Steps');
-  const [periodTab, setPeriodTab] = useState('Daily');
+  const [periodTab, setPeriodTab]   = useState('Daily');
 
-  // Body layout for arc sizing
   const [bodyDims, setBodyDims] = useState({ width: 0, height: 0 });
   const onBodyLayout = (e: LayoutChangeEvent) => {
     const { width, height } = e.nativeEvent.layout;
@@ -92,47 +117,58 @@ export default function Dashboard() {
   return (
     <SafeAreaView style={s.root}>
 
-      {/* ── Header ─────────────────────────────────────── */}
+      {/* ── Header ── */}
       <View style={s.header}>
         <Text style={s.headerName}>FF M. Harvey – SCFD</Text>
         <Text style={s.headerClock}>{time}</Text>
       </View>
 
-      {/* ── Body ───────────────────────────────────────── */}
+      {/* ── Body ── */}
       <View style={s.body} onLayout={onBodyLayout}>
 
         {/* Left sidebar */}
         <View style={s.sidebar}>
           {UPPER_TABS.map((tab) => {
-            const active = tab === upperActive;
+            const active = tab.label === upperActive;
+            const bg = active
+              ? (tab.accent ?? C.white)
+              : 'transparent';
+            const textColor = active
+              ? (tab.accent ? C.white : C.navy)
+              : C.dimText;
             return (
               <TouchableOpacity
-                key={tab}
-                style={[s.vtab, active && s.vtabActive]}
-                onPress={() => setUpperActive(tab)}
-                activeOpacity={0.7}
+                key={tab.label}
+                style={[s.vtab, { backgroundColor: bg }]}
+                onPress={() => setUpperActive(tab.label)}
+                activeOpacity={0.75}
               >
-                <Text style={[s.vtabText, active && s.vtabTextActive]}>
-                  {tab}
+                <Text style={[s.vtabText, { color: textColor }]}>
+                  {tab.label}
                 </Text>
               </TouchableOpacity>
             );
           })}
 
-          {/* FAB gap */}
           <View style={s.sidebarFabGap} />
 
           {LOWER_TABS.map((tab) => {
-            const active = tab === lowerActive;
+            const active = tab.label === lowerActive;
+            const bg = active
+              ? (tab.accent ?? C.white)
+              : 'transparent';
+            const textColor = active
+              ? (tab.accent === C.accentHeart ? C.navy : C.white)
+              : C.dimText;
             return (
               <TouchableOpacity
-                key={tab}
-                style={[s.vtab, active && s.vtabActive]}
-                onPress={() => setLowerActive(prev => prev === tab ? null : tab)}
-                activeOpacity={0.7}
+                key={tab.label}
+                style={[s.vtab, { backgroundColor: bg }]}
+                onPress={() => setLowerActive(p => p === tab.label ? null : tab.label)}
+                activeOpacity={0.75}
               >
-                <Text style={[s.vtabText, active && s.vtabTextActive]}>
-                  {tab}
+                <Text style={[s.vtabText, { color: textColor }]}>
+                  {tab.label}
                 </Text>
               </TouchableOpacity>
             );
@@ -144,41 +180,52 @@ export default function Dashboard() {
 
           {/* Period tabs */}
           <View style={s.periodRow}>
-            {['Daily', 'Lifetime', 'Custom'].map((t, i) => (
-              <TouchableOpacity
-                key={t}
-                style={[s.periodBtn, i < 2 && s.periodBtnBorder]}
-                onPress={() => setPeriodTab(t)}
-                activeOpacity={0.7}
-              >
-                <Text style={[s.periodText, t === periodTab && s.periodTextActive]}>
-                  {t}
-                </Text>
-              </TouchableOpacity>
-            ))}
+            {['Daily', 'Lifetime', 'Custom'].map((t, i) => {
+              const active = t === periodTab;
+              return (
+                <TouchableOpacity
+                  key={t}
+                  style={[
+                    s.periodBtn,
+                    i < 2 && s.periodBtnBorder,
+                    active && s.periodBtnActive,
+                  ]}
+                  onPress={() => setPeriodTab(t)}
+                  activeOpacity={0.75}
+                >
+                  <Text style={[s.periodText, active && s.periodTextActive]}>
+                    {t}
+                  </Text>
+                </TouchableOpacity>
+              );
+            })}
           </View>
 
-          {/* Upper metric box — OHPAH, number always shown */}
+          {/* Upper metric box — always shows OHPAH number */}
           <View style={s.metricBox}>
-            <Text style={s.bigNum}>4</Text>
+            <Text style={s.bigNum}>
+              {OHPAH_VALUES[upperActive] ?? '—'}
+            </Text>
           </View>
 
-          {/* FAB gap spacer */}
+          {/* FAB gap */}
           <View style={s.fabGap} />
 
-          {/* Lower metric box — HealthKit, tap-to-reveal */}
+          {/* Lower metric box — HealthKit tap-to-reveal */}
           <View style={s.metricBox}>
-            {lowerActive ? (
+            {lowerActive && (
               <>
-                <Text style={s.bigNum}>{lowerActive === 'Steps' ? '5437' : '—'}</Text>
+                <Text style={s.bigNum}>
+                  {HK_VALUES[lowerActive] ?? '—'}
+                </Text>
                 <Text style={s.metricLabel}>{lowerActive}</Text>
               </>
-            ) : null}
+            )}
           </View>
 
         </View>
 
-        {/* Arc timeline overlay */}
+        {/* Arc timeline */}
         {bodyDims.width > 0 && (
           <View style={StyleSheet.absoluteFill} pointerEvents="none">
             <ArcTimeline
@@ -196,10 +243,10 @@ export default function Dashboard() {
 
       </View>
 
-      {/* ── Bottom nav ─────────────────────────────────── */}
+      {/* ── Bottom nav ── */}
       <View style={s.bottomNav}>
         <TouchableOpacity style={s.navBtn}>
-          <Text style={s.navIcon}>🔖</Text>
+          <Text style={s.navIcon}>♡</Text>
         </TouchableOpacity>
         <Text style={s.wordmark}>OHPΔH</Text>
         <TouchableOpacity style={s.navBtn}>
@@ -218,30 +265,28 @@ const s = StyleSheet.create({
     backgroundColor: C.navy,
   },
 
-  // Header
   header: {
     height: L.headerHeight,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingHorizontal: 14,
+    paddingHorizontal: 16,
     borderBottomWidth: 1,
     borderBottomColor: C.border,
   },
   headerName: {
     color: C.white,
-    fontSize: 14,
-    fontWeight: '500',
-    letterSpacing: 0.3,
+    fontSize: 15,
+    fontWeight: '600',
+    letterSpacing: 0.2,
   },
   headerClock: {
     color: C.white,
-    fontSize: 14,
-    fontWeight: '500',
-    letterSpacing: 0.3,
+    fontSize: 15,
+    fontWeight: '600',
+    letterSpacing: 0.5,
   },
 
-  // Body
   body: {
     flex: 1,
     flexDirection: 'row',
@@ -259,28 +304,21 @@ const s = StyleSheet.create({
     borderRightColor: C.border,
   },
   sidebarFabGap: {
-    height: L.fabSize + 12,
+    height: L.fabSize + 16,
     flexShrink: 0,
   },
   vtab: {
     width: L.sidebarWidth,
-    height: 44,
+    height: 46,
     alignItems: 'center',
     justifyContent: 'center',
   },
-  vtabActive: {
-    backgroundColor: C.activeTabBg,
-  },
   vtabText: {
-    color: C.dimText,
     fontSize: 10,
     fontWeight: '700',
     letterSpacing: 0.8,
     textTransform: 'uppercase',
     transform: [{ rotate: '-90deg' }],
-  },
-  vtabTextActive: {
-    color: C.activeTabText,
   },
 
   // Center
@@ -289,8 +327,8 @@ const s = StyleSheet.create({
     flexDirection: 'column',
     paddingLeft: 10,
     paddingRight: 6,
-    paddingBottom: 8,
     paddingTop: 4,
+    paddingBottom: 8,
   },
 
   // Period tabs
@@ -304,10 +342,15 @@ const s = StyleSheet.create({
   periodBtn: {
     paddingHorizontal: 14,
     paddingVertical: 8,
+    borderRadius: 2,
   },
   periodBtnBorder: {
     borderRightWidth: 1,
     borderRightColor: C.border,
+  },
+  periodBtnActive: {
+    backgroundColor: C.terracotta,
+    borderRadius: 3,
   },
   periodText: {
     color: C.dimText,
@@ -316,35 +359,34 @@ const s = StyleSheet.create({
   },
   periodTextActive: {
     color: C.white,
-    fontWeight: '600',
+    fontWeight: '700',
   },
 
   // Metric boxes
   metricBox: {
     flex: 1,
     borderWidth: 1.5,
-    borderColor: C.dashedBorder,
+    borderColor: C.dashed,
     borderStyle: 'dashed',
     borderRadius: 4,
     padding: 12,
     justifyContent: 'flex-end',
   },
   bigNum: {
-    fontSize: 68,
+    fontSize: 72,
     fontWeight: '700',
     fontStyle: 'italic',
-    color: C.white,
-    lineHeight: 72,
+    color: C.terracotta,
+    lineHeight: 76,
     includeFontPadding: false,
   },
   metricLabel: {
-    fontSize: 18,
-    fontWeight: '600',
+    fontSize: 20,
+    fontWeight: '700',
     color: C.white,
-    marginTop: 2,
+    marginTop: 4,
   },
 
-  // FAB gap spacer
   fabGap: {
     height: L.fabSize + 4,
     flexShrink: 0,
@@ -359,21 +401,21 @@ const s = StyleSheet.create({
     width: L.fabSize,
     height: L.fabSize,
     borderRadius: L.fabRadius,
-    backgroundColor: C.crimson,
+    backgroundColor: C.fabRed,
     alignItems: 'center',
     justifyContent: 'center',
     zIndex: 10,
-    shadowColor: C.crimson,
+    shadowColor: '#000',
     shadowOffset: { width: 0, height: 3 },
-    shadowOpacity: 0.6,
-    shadowRadius: 8,
+    shadowOpacity: 0.4,
+    shadowRadius: 6,
     elevation: 8,
   },
   fabIcon: {
     color: C.white,
-    fontSize: 30,
+    fontSize: 32,
     fontWeight: '300',
-    lineHeight: 34,
+    lineHeight: 36,
   },
 
   // Bottom nav
@@ -382,25 +424,25 @@ const s = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingHorizontal: 22,
+    paddingHorizontal: 24,
     borderTopWidth: 1,
     borderTopColor: C.border,
     backgroundColor: C.navy,
   },
   navBtn: {
-    width: 34,
-    height: 34,
+    width: 36,
+    height: 36,
     alignItems: 'center',
     justifyContent: 'center',
   },
   navIcon: {
-    color: C.dimText,
-    fontSize: 18,
+    color: C.cream,
+    fontSize: 20,
   },
   wordmark: {
-    color: C.white,
-    fontSize: 22,
+    color: C.cream,
+    fontSize: 24,
     fontWeight: '800',
-    letterSpacing: 3,
+    letterSpacing: 4,
   },
 });
