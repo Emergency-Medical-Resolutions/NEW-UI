@@ -95,16 +95,28 @@ export default function ArcTimeline({ width, height, segments = [] }: Props) {
         strokeWidth={2}
       />
 
-      {/* ── Colour segments (call logs) ── */}
+      {/* ── Colour segments — glow layer then solid layer ── */}
       {segments.map((seg, i) => (
-        <Path
-          key={i}
-          d={arcPath(seg.h1, seg.h2)}
-          fill="none"
-          stroke={seg.color}
-          strokeWidth={14}
-          strokeLinecap="butt"
-        />
+        <React.Fragment key={i}>
+          {/* Wide soft glow underneath */}
+          <Path
+            d={arcPath(seg.h1, seg.h2)}
+            fill="none"
+            stroke={seg.color}
+            strokeWidth={28}
+            strokeLinecap="butt"
+            opacity={0.22}
+          />
+          {/* Solid band */}
+          <Path
+            d={arcPath(seg.h1, seg.h2)}
+            fill="none"
+            stroke={seg.color}
+            strokeWidth={14}
+            strokeLinecap="butt"
+            opacity={0.92}
+          />
+        </React.Fragment>
       ))}
 
       {/* ── Inside tick marks + time labels ── */}

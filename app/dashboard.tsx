@@ -27,7 +27,8 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
-import Svg, { Line as SvgLine, Path, Text as SvgText } from 'react-native-svg';
+import { LinearGradient } from 'expo-linear-gradient';
+import { BlurView } from 'expo-blur';
 import { COLORS, LAYOUT } from '../constants/theme';
 import ArcTimeline, { ArcSegment } from '../components/ArcTimeline';
 import MetricBox from '../components/MetricBox';
@@ -105,12 +106,22 @@ export default function Dashboard() {
 
   return (
     <SafeAreaView style={styles.root}>
+      {/* ── Deep gradient background ── */}
+      <LinearGradient
+        colors={['#051424', '#091b32', '#06162a', '#051424']}
+        locations={[0, 0.35, 0.65, 1]}
+        style={StyleSheet.absoluteFill}
+        start={{ x: 0.3, y: 0 }}
+        end={{ x: 0.7, y: 1 }}
+      />
+      {/* Subtle crimson ambient at center */}
+      <View style={styles.ambientGlow} />
 
       {/* ── Header ── */}
-      <View style={styles.header}>
+      <BlurView intensity={18} tint="dark" style={styles.header}>
         <Text style={styles.headerName}>FF M. Harvey – SCFD</Text>
         <Text style={styles.headerClock}>{time}</Text>
-      </View>
+      </BlurView>
 
       {/* ── Body ── */}
       <View style={styles.body} onLayout={onBodyLayout}>
@@ -122,18 +133,33 @@ export default function Dashboard() {
               key={tab.label}
               style={[styles.vtabWrap, tab.inverted && styles.vtabInverted]}
             >
+              {tab.inverted && (
+                <LinearGradient
+                  colors={['rgba(127,29,29,0.75)', 'rgba(80,10,10,0.5)']}
+                  style={StyleSheet.absoluteFill}
+                  start={{ x: 0, y: 0 }}
+                  end={{ x: 1, y: 1 }}
+                />
+              )}
               <Text style={[styles.vtabText, tab.inverted && styles.vtabTextInverted]}>
                 {tab.label}
               </Text>
             </View>
           ))}
-          {/* FAB gap — keeps lower tabs pushed to match body center */}
           <View style={styles.sidebarFabGap} />
           {LOWER_TABS.map((tab) => (
             <View
               key={tab.label}
               style={[styles.vtabWrap, tab.inverted && styles.vtabInverted]}
             >
+              {tab.inverted && (
+                <LinearGradient
+                  colors={['rgba(127,29,29,0.75)', 'rgba(80,10,10,0.5)']}
+                  style={StyleSheet.absoluteFill}
+                  start={{ x: 0, y: 0 }}
+                  end={{ x: 1, y: 1 }}
+                />
+              )}
               <Text style={[styles.vtabText, tab.inverted && styles.vtabTextInverted]}>
                 {tab.label}
               </Text>
@@ -194,15 +220,17 @@ export default function Dashboard() {
           </View>
         )}
 
-        {/* FAB — absolute, centred vertically, overlaps left sidebar edge */}
+        {/* FAB — multi-ring crimson glow */}
+        <View style={styles.fabGlowOuter} pointerEvents="none" />
+        <View style={styles.fabGlowMiddle} pointerEvents="none" />
         <TouchableOpacity style={styles.fab} activeOpacity={0.8}>
           <Text style={styles.fabIcon}>+</Text>
         </TouchableOpacity>
 
       </View>
 
-      {/* ── Bottom nav ── */}
-      <View style={styles.bottomNav}>
+      {/* ── Bottom nav — glass ── */}
+      <BlurView intensity={22} tint="dark" style={styles.bottomNav}>
         <TouchableOpacity style={styles.navBtn}>
           <Text style={styles.navIcon}>🔖</Text>
         </TouchableOpacity>
@@ -210,7 +238,7 @@ export default function Dashboard() {
         <TouchableOpacity style={styles.navBtn}>
           <Text style={styles.navIcon}>☰</Text>
         </TouchableOpacity>
-      </View>
+      </BlurView>
 
     </SafeAreaView>
   );
@@ -223,6 +251,21 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.navy,
   },
 
+  // Background ambient glow
+  ambientGlow: {
+    position: 'absolute',
+    width: 300,
+    height: 300,
+    borderRadius: 150,
+    top: '30%',
+    left: '10%',
+    backgroundColor: 'transparent',
+    shadowColor: '#7f1d1d',
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0.12,
+    shadowRadius: 120,
+  },
+
   // Header
   header: {
     height: LAYOUT.headerHeight,
@@ -231,7 +274,9 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     paddingHorizontal: 14,
     borderBottomWidth: 1,
-    borderBottomColor: COLORS.border,
+    borderBottomColor: 'rgba(212,228,250,0.1)',
+    // BlurView handles background
+    backgroundColor: 'transparent',
   },
   headerName: {
     color: COLORS.white,
@@ -277,9 +322,17 @@ const styles = StyleSheet.create({
     height: 44,
     alignItems: 'center',
     justifyContent: 'center',
+    overflow: 'hidden',
   },
   vtabInverted: {
-    backgroundColor: COLORS.white,
+    // gradient applied inline; just set border glow
+    borderWidth: 1,
+    borderColor: 'rgba(127,29,29,0.45)',
+    shadowColor: '#7f1d1d',
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0.5,
+    shadowRadius: 6,
+    elevation: 4,
   },
   vtabText: {
     color: COLORS.dimText,
@@ -341,10 +394,36 @@ const styles = StyleSheet.create({
   // FAB gap
   fabGap: { height: 58, flexShrink: 0 },
 
-  // FAB
+  // FAB glow rings
+  fabGlowOuter: {
+    position: 'absolute',
+    left: LAYOUT.sidebarWidth - LAYOUT.fabRadius - 22,
+    top: '50%',
+    marginTop: -(LAYOUT.fabRadius + 22),
+    width: LAYOUT.fabSize + 44,
+    height: LAYOUT.fabSize + 44,
+    borderRadius: LAYOUT.fabRadius + 22,
+    backgroundColor: 'transparent',
+    shadowColor: '#7f1d1d',
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0.35,
+    shadowRadius: 28,
+    zIndex: 9,
+  },
+  fabGlowMiddle: {
+    position: 'absolute',
+    left: LAYOUT.sidebarWidth - LAYOUT.fabRadius - 10,
+    top: '50%',
+    marginTop: -(LAYOUT.fabRadius + 10),
+    width: LAYOUT.fabSize + 20,
+    height: LAYOUT.fabSize + 20,
+    borderRadius: LAYOUT.fabRadius + 10,
+    backgroundColor: 'rgba(127,29,29,0.18)',
+    zIndex: 9,
+  },
   fab: {
     position: 'absolute',
-    left: LAYOUT.sidebarWidth - LAYOUT.fabRadius, // overlaps left sidebar edge
+    left: LAYOUT.sidebarWidth - LAYOUT.fabRadius,
     top: '50%',
     marginTop: -LAYOUT.fabRadius,
     width: LAYOUT.fabSize,
@@ -354,11 +433,11 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     zIndex: 10,
-    shadowColor: COLORS.crimson,
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.5,
-    shadowRadius: 10,
-    elevation: 8,
+    shadowColor: '#7f1d1d',
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0.9,
+    shadowRadius: 14,
+    elevation: 12,
   },
   fabIcon: {
     color: COLORS.white,
@@ -367,7 +446,7 @@ const styles = StyleSheet.create({
     lineHeight: 34,
   },
 
-  // Bottom nav
+  // Bottom nav — glass
   bottomNav: {
     height: LAYOUT.bottomNavHeight,
     flexDirection: 'row',
@@ -375,7 +454,9 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     paddingHorizontal: 22,
     borderTopWidth: 1,
-    borderTopColor: COLORS.border,
+    borderTopColor: 'rgba(212,228,250,0.10)',
+    backgroundColor: 'transparent',
+    overflow: 'hidden',
   },
   navBtn: {
     width: 34,
