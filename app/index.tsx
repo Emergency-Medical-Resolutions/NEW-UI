@@ -2,29 +2,26 @@
  * Splash → Transition → Dashboard
  *
  * Phase 1: splash.mp4 loops while the app "loads"
- * Phase 2: transition.mp4 plays once (pole bends into dashboard)
+ *          SplashOverlay fades in on top with brand mark + wordmark + tagline
+ * Phase 2: transition.mp4 plays once (pole bends into dashboard arc)
  * Phase 3: navigate to /dashboard
  */
 import React, { useEffect, useRef, useState } from 'react';
 import { Animated, StyleSheet, View } from 'react-native';
 import { VideoView, useVideoPlayer } from 'expo-video';
 import { router } from 'expo-router';
+import SplashOverlay from '../components/SplashOverlay';
 
 type Phase = 'splash' | 'transition';
 
-// How long to show the splash before moving to transition (ms).
-// Set to match one full loop of splash.mp4.
+// Match these to actual video durations.
 const SPLASH_DURATION = 3400;
-
-// How long the transition video plays before navigating (ms).
-// Set to match the length of transition.mp4.
 const TRANSITION_DURATION = 4800;
 
 export default function SplashScreen() {
   const [phase, setPhase] = useState<Phase>('splash');
   const fadeAnim = useRef(new Animated.Value(1)).current;
 
-  // ── Video players ──
   const splashPlayer = useVideoPlayer(
     require('../assets/splash.mp4'),
     (p) => {
@@ -42,7 +39,7 @@ export default function SplashScreen() {
     },
   );
 
-  // ── Phase 1 → 2: after one splash loop ──
+  // Phase 1 → 2
   useEffect(() => {
     const t = setTimeout(() => {
       Animated.timing(fadeAnim, {
@@ -58,7 +55,7 @@ export default function SplashScreen() {
     return () => clearTimeout(t);
   }, []);
 
-  // ── Phase 2 → 3: after transition video ends ──
+  // Phase 2 → 3
   useEffect(() => {
     if (phase !== 'transition') return;
     const t = setTimeout(() => {
@@ -75,17 +72,21 @@ export default function SplashScreen() {
     <View style={styles.container}>
       <Animated.View style={[StyleSheet.absoluteFill, { opacity: fadeAnim }]}>
         {phase === 'splash' ? (
-          <VideoView
-            player={splashPlayer}
-            style={StyleSheet.absoluteFill}
-            contentFit="contain"
-            nativeControls={false}
-          />
+          <>
+            <VideoView
+              player={splashPlayer}
+              style={StyleSheet.absoluteFill}
+              contentFit="cover"
+              nativeControls={false}
+            />
+            {/* Brand overlay fades in 400ms after video starts */}
+            <SplashOverlay entranceDelay={400} />
+          </>
         ) : (
           <VideoView
             player={transPlayer}
             style={StyleSheet.absoluteFill}
-            contentFit="contain"
+            contentFit="cover"
             nativeControls={false}
           />
         )}
@@ -97,6 +98,6 @@ export default function SplashScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#0B1929',
+    backgroundColor: '#051424',
   },
 });
