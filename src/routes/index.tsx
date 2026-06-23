@@ -291,17 +291,58 @@ function Dashboard() {
     <>
       <WornOverlay />
 
+    <div
+      style={{
+        display: "flex",
+        flexDirection: "row",
+        height: "100dvh",
+        width: "100%",
+        background:
+          "radial-gradient(ellipse at 30% 20%, #EFE3C8 0%, #D9C8A6 60%, #B8A47E 100%)",
+        position: "relative",
+        overflow: "hidden",
+        fontFamily: "'Arial Narrow', Arial, 'Helvetica Neue', sans-serif",
+        userSelect: "none",
+      }}
+    >
+      {/* Left paper margin with faint serif text */}
+      <div
+        aria-hidden
+        style={{
+          width: 18,
+          flexShrink: 0,
+          background:
+            "linear-gradient(to right, rgba(120,90,50,0.35), transparent)",
+          color: "rgba(60,40,20,0.45)",
+          fontFamily: "Georgia, 'Times New Roman', serif",
+          fontSize: 7,
+          lineHeight: 1.2,
+          padding: "8px 2px",
+          overflow: "hidden",
+          writingMode: "vertical-rl",
+          letterSpacing: 0.2,
+        }}
+      >
+        latch contr. ts th of the matter, finely woven and bound. an old
+        record of breath and motion that fades with each passing hour into
+        memory and dust.
+      </div>
+
+      <WornOverlay />
+
       <div
         style={{
+          flex: 1,
           display: "flex",
           flexDirection: "column",
-          height: "100dvh",
           backgroundColor: C.navy,
           overflow: "hidden",
           fontFamily: "'Arial Narrow', Arial, 'Helvetica Neue', sans-serif",
           userSelect: "none",
           position: "relative",
           zIndex: 1,
+          boxShadow:
+            "inset 0 0 60px rgba(0,0,0,0.55), 0 0 12px rgba(0,0,0,0.4)",
         }}
       >
         {/* ── Header ── */}
