@@ -288,9 +288,6 @@ function Dashboard() {
   }, []);
 
   return (
-    <>
-      <WornOverlay />
-
     <div
       style={{
         display: "flex",
@@ -305,30 +302,32 @@ function Dashboard() {
         userSelect: "none",
       }}
     >
+      <WornOverlay />
+
       {/* Left paper margin with faint serif text */}
       <div
         aria-hidden
         style={{
-          width: 18,
+          width: 22,
           flexShrink: 0,
           background:
-            "linear-gradient(to right, rgba(120,90,50,0.35), transparent)",
-          color: "rgba(60,40,20,0.45)",
+            "linear-gradient(to right, rgba(120,90,50,0.30), transparent)",
+          color: "rgba(60,40,20,0.50)",
           fontFamily: "Georgia, 'Times New Roman', serif",
           fontSize: 7,
-          lineHeight: 1.2,
-          padding: "8px 2px",
+          lineHeight: 1.3,
+          padding: "10px 3px",
           overflow: "hidden",
           writingMode: "vertical-rl",
           letterSpacing: 0.2,
+          zIndex: 100,
         }}
       >
-        latch contr. ts th of the matter, finely woven and bound. an old
-        record of breath and motion that fades with each passing hour into
-        memory and dust.
+        latch contr. ts th of the matter finely woven and bound an old record
+        of breath and motion that fades with each passing hour into memory
       </div>
 
-      <WornOverlay />
+
 
       <div
         style={{
@@ -723,6 +722,29 @@ function Dashboard() {
           </button>
         </div>
       </div>
-    </>
+
+      {/* Right paper margin with faint serif text */}
+      <div
+        aria-hidden
+        style={{
+          width: 22,
+          flexShrink: 0,
+          background:
+            "linear-gradient(to left, rgba(120,90,50,0.30), transparent)",
+          color: "rgba(60,40,20,0.50)",
+          fontFamily: "Georgia, 'Times New Roman', serif",
+          fontSize: 7,
+          lineHeight: 1.3,
+          padding: "10px 3px",
+          overflow: "hidden",
+          writingMode: "vertical-rl",
+          letterSpacing: 0.2,
+          zIndex: 100,
+        }}
+      >
+        of the matter finely woven and bound an old record of breath and
+        motion that fades with each passing hour into memory and dust
+      </div>
+    </div>
   );
 }
