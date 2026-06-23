@@ -7,40 +7,39 @@ export const Route = createFileRoute("/")({
 
 // ── Colors ────────────────────────────────────────────────────
 const C = {
-  navy:          "#0B2340",
+  navy:          "#0B1E3A",
   white:         "#FFFFFF",
   cream:         "#EDE8D0",
-  dimText:       "rgba(255,255,255,0.45)",
-  border:        "rgba(255,255,255,0.20)",
-  dashed:        "rgba(255,255,255,0.32)",
+  dimText:       "rgba(237,232,208,0.45)",
+  border:        "rgba(237,232,208,0.22)",
+  dashed:        "rgba(237,232,208,0.38)",
   terracotta:    "#C0522A",
-  fabRed:        "#A63020",
+  fabRed:        "#B03520",
   accentCall:    "#5C6470",
-  accentCal:     "#0E7490",
+  accentCal:     "#0D7490",
   accentSteps:   "#D97706",
-  accentHeart:   "#E5E7EB",
+  accentHeart:   "#D6CAB0",
   accentCalorie: "#CA8A04",
 };
 
 const SIDEBAR_W = 52;
 const HEADER_H  = 52;
-const BOTTOM_H  = 64;
-const FAB_SIZE  = 58;
-const FAB_R     = 29;
+const BOTTOM_H  = 66;
+const FAB_SIZE  = 60;
+const FAB_R     = 30;
 
 // ── Tab definitions ───────────────────────────────────────────
-const UPPER_TABS = [
-  { label: "FES",   accent: null                as string | null },
-  { label: "WII",   accent: null                as string | null },
-  { label: "Sleep", accent: null                as string | null },
-  { label: "Call",  accent: C.accentCall        as string | null },
+const UPPER_TABS: { label: string; accent: string | null }[] = [
+  { label: "FES",   accent: null },
+  { label: "WII",   accent: null },
+  { label: "Sleep", accent: null },
+  { label: "Call",  accent: C.accentCall },
 ];
-
-const LOWER_TABS = [
-  { label: "Cal",     accent: C.accentCal     as string | null },
-  { label: "Steps",   accent: C.accentSteps   as string | null },
-  { label: "Heart",   accent: C.accentHeart   as string | null },
-  { label: "Calorie", accent: C.accentCalorie as string | null },
+const LOWER_TABS: { label: string; accent: string | null }[] = [
+  { label: "Cal",     accent: C.accentCal },
+  { label: "Steps",   accent: C.accentSteps },
+  { label: "Heart",   accent: C.accentHeart },
+  { label: "Calorie", accent: C.accentCalorie },
 ];
 
 // ── Metric values ─────────────────────────────────────────────
@@ -67,15 +66,16 @@ const CALL_SEGMENTS = [
   { h1: 22.0, h2: 24.0, color: "#9B2915" },
 ];
 
-// ── Arc Timeline ──────────────────────────────────────────────
+// ── Arc hour labels (matches reference image) ─────────────────
 const HOUR_LABELS = [
-  "0800","0900","1000","1100","1200",
+  "8","9","10","11","12",
   "1300","1400","1500","1600","1700","1800",
   "1900","2000","2100","2200","2300",
   "0000","0100","0200","0300","0400",
-  "0500","0600","0700","0800",
+  "0500","0600","0700","8",
 ];
 
+// ── Arc Timeline ──────────────────────────────────────────────
 function ArcTimeline({
   width,
   height,
@@ -116,7 +116,7 @@ function ArcTimeline({
 
   const INNER_EDGE = R - 1;
   const TICK_LEN   = 10;
-  const LABEL_R    = INNER_EDGE - TICK_LEN - 5;
+  const LABEL_R    = INNER_EDGE - TICK_LEN - 6;
 
   return (
     <svg
@@ -129,7 +129,7 @@ function ArcTimeline({
       <path
         d={arcPath(0, 24)}
         fill="none"
-        stroke="rgba(255,255,255,0.82)"
+        stroke="rgba(237,232,208,0.90)"
         strokeWidth={2}
       />
 
@@ -162,14 +162,15 @@ function ArcTimeline({
           <React.Fragment key={h}>
             <line
               x1={tx1} y1={ty1} x2={tx2} y2={ty2}
-              stroke="rgba(255,255,255,0.45)"
+              stroke="rgba(237,232,208,0.55)"
               strokeWidth={1.2}
             />
             <text
               x={lx} y={ly}
-              fill="rgba(255,255,255,0.70)"
-              fontSize={8.5}
-              fontFamily="monospace"
+              fill="rgba(237,232,208,0.80)"
+              fontSize={9}
+              fontFamily="'Courier New', Courier, monospace"
+              fontWeight="500"
               dominantBaseline="middle"
               textAnchor="end"
             >
@@ -182,9 +183,78 @@ function ArcTimeline({
   );
 }
 
+// ── Grain + vignette texture overlay ─────────────────────────
+function WornOverlay() {
+  return (
+    <>
+      {/* SVG fractal noise grain */}
+      <svg
+        style={{
+          position: "fixed",
+          top: 0, left: 0,
+          width: "100%", height: "100%",
+          pointerEvents: "none",
+          zIndex: 90,
+        }}
+        xmlns="http://www.w3.org/2000/svg"
+      >
+        <defs>
+          <filter id="grain" x="0%" y="0%" width="100%" height="100%">
+            <feTurbulence
+              type="fractalNoise"
+              baseFrequency="0.68"
+              numOctaves="4"
+              seed="2"
+              stitchTiles="stitch"
+              result="noise"
+            />
+            <feColorMatrix type="saturate" values="0" in="noise" result="gray"/>
+            <feBlend in="SourceGraphic" in2="gray" mode="multiply" result="blend"/>
+            <feComposite in="blend" in2="SourceGraphic" operator="in"/>
+          </filter>
+        </defs>
+        <rect
+          width="100%" height="100%"
+          fill="rgba(8,18,40,0.18)"
+          filter="url(#grain)"
+        />
+      </svg>
+
+      {/* Vignette: darker corners/edges */}
+      <div
+        style={{
+          position: "fixed",
+          top: 0, left: 0, right: 0, bottom: 0,
+          pointerEvents: "none",
+          zIndex: 88,
+          background: `
+            radial-gradient(ellipse at 50% 50%, transparent 45%, rgba(0,5,18,0.55) 100%),
+            linear-gradient(to bottom, rgba(0,5,18,0.35) 0%, transparent 12%, transparent 88%, rgba(0,5,18,0.35) 100%)
+          `,
+        }}
+      />
+
+      {/* Worn blue variation patches */}
+      <div
+        style={{
+          position: "fixed",
+          top: 0, left: 0, right: 0, bottom: 0,
+          pointerEvents: "none",
+          zIndex: 87,
+          background: `
+            radial-gradient(ellipse at 15% 40%, rgba(12,30,70,0.45) 0%, transparent 45%),
+            radial-gradient(ellipse at 85% 60%, rgba(5,15,45,0.50) 0%, transparent 40%),
+            radial-gradient(ellipse at 40% 80%, rgba(8,20,55,0.35) 0%, transparent 35%)
+          `,
+        }}
+      />
+    </>
+  );
+}
+
 // ── Dashboard ─────────────────────────────────────────────────
 function Dashboard() {
-  const [time, setTime] = useState("");
+  const [time, setTime] = useState("14:22");
   useEffect(() => {
     const fmt = () => {
       const d = new Date();
@@ -216,356 +286,438 @@ function Dashboard() {
   }, []);
 
   return (
-    <div
-      style={{
-        display: "flex",
-        flexDirection: "column",
-        height: "100dvh",
-        backgroundColor: C.navy,
-        overflow: "hidden",
-        fontFamily: "system-ui, -apple-system, sans-serif",
-        userSelect: "none",
-      }}
-    >
-      {/* ── Header ── */}
+    <>
+      <WornOverlay />
+
       <div
         style={{
-          height: HEADER_H,
           display: "flex",
-          alignItems: "center",
-          justifyContent: "space-between",
-          padding: "0 16px",
-          borderBottom: `1px solid ${C.border}`,
-          flexShrink: 0,
+          flexDirection: "column",
+          height: "100dvh",
+          backgroundColor: C.navy,
+          overflow: "hidden",
+          fontFamily: "'Arial Narrow', Arial, 'Helvetica Neue', sans-serif",
+          userSelect: "none",
+          position: "relative",
+          zIndex: 1,
         }}
       >
-        <span style={{ color: C.white, fontSize: 15, fontWeight: 600, letterSpacing: 0.2 }}>
-          FF M. Harvey – SCFD
-        </span>
-        <span
-          style={{
-            color: C.white,
-            fontSize: 15,
-            fontWeight: 600,
-            letterSpacing: 0.5,
-            fontVariantNumeric: "tabular-nums",
-          }}
-        >
-          {time}
-        </span>
-      </div>
-
-      {/* ── Body ── */}
-      <div
-        ref={bodyRef}
-        style={{ flex: 1, display: "flex", flexDirection: "row", position: "relative", overflow: "hidden" }}
-      >
-        {/* Left sidebar */}
+        {/* ── Header ── */}
         <div
           style={{
-            width: SIDEBAR_W,
-            flexShrink: 0,
+            height: HEADER_H,
             display: "flex",
-            flexDirection: "column",
             alignItems: "center",
             justifyContent: "space-between",
-            padding: "10px 0",
-            borderRight: `1px solid ${C.border}`,
+            padding: "0 14px",
+            borderBottom: `1px solid ${C.border}`,
+            flexShrink: 0,
+            background: "rgba(8,20,45,0.5)",
           }}
         >
-          {/* Upper tabs */}
-          <div style={{ display: "flex", flexDirection: "column", alignItems: "center" }}>
-            {UPPER_TABS.map((tab) => {
-              const active = tab.label === upperActive;
-              const bg = active ? (tab.accent ?? C.white) : "transparent";
-              const textColor = active
-                ? tab.accent ? C.white : C.navy
-                : C.dimText;
-              return (
-                <button
-                  key={tab.label}
-                  onClick={() => setUpperActive(tab.label)}
-                  style={{
-                    width: SIDEBAR_W,
-                    height: 46,
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    background: bg,
-                    border: "none",
-                    cursor: "pointer",
-                    padding: 0,
-                  }}
-                >
-                  <span
-                    style={{
-                      color: textColor,
-                      fontSize: 10,
-                      fontWeight: 700,
-                      letterSpacing: 0.8,
-                      textTransform: "uppercase",
-                      transform: "rotate(-90deg)",
-                      display: "inline-block",
-                      whiteSpace: "nowrap",
-                    }}
-                  >
-                    {tab.label}
-                  </span>
-                </button>
-              );
-            })}
-          </div>
-
-          {/* FAB gap */}
-          <div style={{ height: FAB_SIZE + 16, flexShrink: 0 }} />
-
-          {/* Lower tabs */}
-          <div style={{ display: "flex", flexDirection: "column", alignItems: "center" }}>
-            {LOWER_TABS.map((tab) => {
-              const active = tab.label === lowerActive;
-              const bg = active ? (tab.accent ?? C.white) : "transparent";
-              const textColor = active
-                ? tab.accent === C.accentHeart ? C.navy : C.white
-                : C.dimText;
-              return (
-                <button
-                  key={tab.label}
-                  onClick={() => setLowerActive((p) => (p === tab.label ? null : tab.label))}
-                  style={{
-                    width: SIDEBAR_W,
-                    height: 46,
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    background: bg,
-                    border: "none",
-                    cursor: "pointer",
-                    padding: 0,
-                  }}
-                >
-                  <span
-                    style={{
-                      color: textColor,
-                      fontSize: 10,
-                      fontWeight: 700,
-                      letterSpacing: 0.8,
-                      textTransform: "uppercase",
-                      transform: "rotate(-90deg)",
-                      display: "inline-block",
-                      whiteSpace: "nowrap",
-                    }}
-                  >
-                    {tab.label}
-                  </span>
-                </button>
-              );
-            })}
-          </div>
+          <span
+            style={{
+              color: C.cream,
+              fontSize: 16,
+              fontWeight: 700,
+              letterSpacing: 0.4,
+              textShadow: "0 1px 3px rgba(0,0,0,0.6)",
+            }}
+          >
+            FF M. Harvey - SCFD
+          </span>
+          <span
+            style={{
+              color: C.cream,
+              fontSize: 16,
+              fontWeight: 700,
+              letterSpacing: 1,
+              fontVariantNumeric: "tabular-nums",
+              textShadow: "0 1px 3px rgba(0,0,0,0.6)",
+            }}
+          >
+            {time}
+          </span>
         </div>
 
-        {/* Center */}
+        {/* ── Body ── */}
         <div
+          ref={bodyRef}
           style={{
             flex: 1,
             display: "flex",
-            flexDirection: "column",
-            padding: "4px 6px 8px 10px",
-            minWidth: 0,
+            flexDirection: "row",
+            position: "relative",
+            overflow: "hidden",
           }}
         >
-          {/* Period tabs */}
+          {/* Left sidebar */}
           <div
             style={{
-              display: "flex",
-              flexDirection: "row",
-              borderBottom: `1px solid ${C.border}`,
-              marginBottom: 8,
+              width: SIDEBAR_W,
               flexShrink: 0,
+              display: "flex",
+              flexDirection: "column",
+              alignItems: "center",
+              justifyContent: "space-between",
+              padding: "0",
+              borderRight: `1px solid ${C.border}`,
             }}
           >
-            {(["Daily", "Lifetime", "Custom"] as const).map((t, i) => {
-              const active = t === periodTab;
-              return (
-                <button
-                  key={t}
-                  onClick={() => setPeriodTab(t)}
-                  style={{
-                    padding: "8px 14px",
-                    borderRadius: 3,
-                    border: "none",
-                    borderRight: i < 2 ? `1px solid ${C.border}` : "none",
-                    background: active ? C.terracotta : "transparent",
-                    color: active ? C.white : C.dimText,
-                    fontSize: 13,
-                    fontWeight: active ? 700 : 500,
-                    cursor: "pointer",
-                  }}
-                >
-                  {t}
-                </button>
-              );
-            })}
+            {/* Upper tabs */}
+            <div style={{ display: "flex", flexDirection: "column", alignItems: "center", width: "100%" }}>
+              {UPPER_TABS.map((tab) => {
+                const active = tab.label === upperActive;
+                const bg = active ? (tab.accent ?? C.cream) : "transparent";
+                const textColor = active
+                  ? tab.accent ? C.cream : C.navy
+                  : "rgba(237,232,208,0.40)";
+                return (
+                  <button
+                    key={tab.label}
+                    onClick={() => setUpperActive(tab.label)}
+                    style={{
+                      width: "100%",
+                      height: 48,
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      background: bg,
+                      border: "none",
+                      borderBottom: `1px solid ${C.border}`,
+                      cursor: "pointer",
+                      padding: 0,
+                      boxShadow: active ? "inset 0 0 8px rgba(0,0,0,0.25)" : "none",
+                    }}
+                  >
+                    <span
+                      style={{
+                        color: textColor,
+                        fontSize: 10,
+                        fontWeight: 800,
+                        letterSpacing: 1,
+                        textTransform: "uppercase",
+                        transform: "rotate(-90deg)",
+                        display: "inline-block",
+                        whiteSpace: "nowrap",
+                        textShadow: active ? "none" : "0 1px 2px rgba(0,0,0,0.5)",
+                      }}
+                    >
+                      {tab.label}
+                    </span>
+                  </button>
+                );
+              })}
+            </div>
+
+            {/* FAB gap */}
+            <div style={{ height: FAB_SIZE + 20, flexShrink: 0 }} />
+
+            {/* Lower tabs */}
+            <div style={{ display: "flex", flexDirection: "column", alignItems: "center", width: "100%" }}>
+              {LOWER_TABS.map((tab) => {
+                const active = tab.label === lowerActive;
+                const bg = active ? (tab.accent ?? C.cream) : "transparent";
+                const textColor = active
+                  ? tab.accent === C.accentHeart ? C.navy : C.cream
+                  : "rgba(237,232,208,0.40)";
+                return (
+                  <button
+                    key={tab.label}
+                    onClick={() =>
+                      setLowerActive((p) => (p === tab.label ? null : tab.label))
+                    }
+                    style={{
+                      width: "100%",
+                      height: 48,
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      background: bg,
+                      border: "none",
+                      borderTop: `1px solid ${C.border}`,
+                      cursor: "pointer",
+                      padding: 0,
+                      boxShadow: active ? "inset 0 0 8px rgba(0,0,0,0.25)" : "none",
+                    }}
+                  >
+                    <span
+                      style={{
+                        color: textColor,
+                        fontSize: 10,
+                        fontWeight: 800,
+                        letterSpacing: 1,
+                        textTransform: "uppercase",
+                        transform: "rotate(-90deg)",
+                        display: "inline-block",
+                        whiteSpace: "nowrap",
+                        textShadow: active ? "none" : "0 1px 2px rgba(0,0,0,0.5)",
+                      }}
+                    >
+                      {tab.label}
+                    </span>
+                  </button>
+                );
+              })}
+            </div>
           </div>
 
-          {/* Upper metric box — OHPAH value */}
+          {/* Center */}
           <div
             style={{
               flex: 1,
-              border: `1.5px dashed ${C.dashed}`,
-              borderRadius: 4,
-              padding: 12,
               display: "flex",
               flexDirection: "column",
-              justifyContent: "flex-end",
-              minHeight: 0,
+              padding: "0 6px 8px 8px",
+              minWidth: 0,
+            }}
+          >
+            {/* Period tabs */}
+            <div
+              style={{
+                display: "flex",
+                flexDirection: "row",
+                borderBottom: `1px solid ${C.border}`,
+                flexShrink: 0,
+                height: 48,
+                alignItems: "center",
+              }}
+            >
+              {(["Daily", "Lifetime", "Custom"] as const).map((t, i) => {
+                const active = t === periodTab;
+                return (
+                  <button
+                    key={t}
+                    onClick={() => setPeriodTab(t)}
+                    style={{
+                      padding: "6px 12px",
+                      height: 36,
+                      borderRadius: 3,
+                      border: "none",
+                      borderRight: i < 2 ? `1px solid ${C.border}` : "none",
+                      background: active ? C.terracotta : "transparent",
+                      color: active ? C.cream : "rgba(237,232,208,0.55)",
+                      fontSize: 13,
+                      fontWeight: active ? 700 : 500,
+                      cursor: "pointer",
+                      letterSpacing: 0.3,
+                      boxShadow: active ? "0 1px 4px rgba(0,0,0,0.35)" : "none",
+                    }}
+                  >
+                    {t}
+                  </button>
+                );
+              })}
+            </div>
+
+            {/* Upper metric box — OHPAH value */}
+            <div
+              style={{
+                flex: 1,
+                border: `1.5px dashed ${C.dashed}`,
+                borderRadius: 3,
+                marginTop: 6,
+                padding: 12,
+                display: "flex",
+                flexDirection: "column",
+                justifyContent: "flex-end",
+                minHeight: 0,
+                background: "rgba(255,255,255,0.02)",
+              }}
+            >
+              <span
+                style={{
+                  fontSize: 74,
+                  fontWeight: 700,
+                  fontStyle: "italic",
+                  color: C.terracotta,
+                  lineHeight: 1.0,
+                  textShadow: "0 2px 8px rgba(0,0,0,0.5)",
+                }}
+              >
+                {OHPAH_VALUES[upperActive] ?? "—"}
+              </span>
+            </div>
+
+            {/* FAB gap */}
+            <div style={{ height: FAB_SIZE + 6, flexShrink: 0 }} />
+
+            {/* Lower metric box — HealthKit value */}
+            <div
+              style={{
+                flex: 1,
+                border: `1.5px dashed ${C.dashed}`,
+                borderRadius: 3,
+                marginBottom: 6,
+                padding: 12,
+                display: "flex",
+                flexDirection: "column",
+                justifyContent: "flex-end",
+                minHeight: 0,
+                background: "rgba(255,255,255,0.02)",
+              }}
+            >
+              {lowerActive && (
+                <>
+                  <span
+                    style={{
+                      fontSize: 74,
+                      fontWeight: 700,
+                      fontStyle: "italic",
+                      color: C.terracotta,
+                      lineHeight: 1.0,
+                      textShadow: "0 2px 8px rgba(0,0,0,0.5)",
+                    }}
+                  >
+                    {HK_VALUES[lowerActive] ?? "—"}
+                  </span>
+                  <span
+                    style={{
+                      fontSize: 18,
+                      fontWeight: 700,
+                      color: C.cream,
+                      marginTop: 4,
+                      letterSpacing: 0.5,
+                      textShadow: "0 1px 3px rgba(0,0,0,0.5)",
+                    }}
+                  >
+                    {lowerActive}
+                  </span>
+                </>
+              )}
+            </div>
+          </div>
+
+          {/* Arc timeline overlay */}
+          {bodyDims.width > 0 && (
+            <div
+              style={{
+                position: "absolute",
+                top: 0, left: 0,
+                width: "100%", height: "100%",
+                pointerEvents: "none",
+              }}
+            >
+              <ArcTimeline
+                width={bodyDims.width}
+                height={bodyDims.height}
+                segments={CALL_SEGMENTS}
+              />
+            </div>
+          )}
+
+          {/* FAB */}
+          <button
+            style={{
+              position: "absolute",
+              left: SIDEBAR_W - FAB_R,
+              top: "50%",
+              transform: "translateY(-50%)",
+              width: FAB_SIZE,
+              height: FAB_SIZE,
+              borderRadius: "50%",
+              background: `radial-gradient(circle at 38% 38%, #D04030, ${C.fabRed} 60%, #7A1A10)`,
+              border: "none",
+              cursor: "pointer",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              zIndex: 10,
+              boxShadow: "0 4px 12px rgba(0,0,0,0.55), inset 0 1px 2px rgba(255,120,80,0.25)",
             }}
           >
             <span
               style={{
-                fontSize: 72,
-                fontWeight: 700,
-                fontStyle: "italic",
-                color: C.terracotta,
-                lineHeight: 1.05,
+                color: C.cream,
+                fontSize: 34,
+                fontWeight: 200,
+                lineHeight: 1,
+                marginTop: -2,
               }}
             >
-              {OHPAH_VALUES[upperActive] ?? "—"}
+              +
             </span>
-          </div>
-
-          {/* FAB gap */}
-          <div style={{ height: FAB_SIZE + 4, flexShrink: 0 }} />
-
-          {/* Lower metric box — HealthKit value */}
-          <div
-            style={{
-              flex: 1,
-              border: `1.5px dashed ${C.dashed}`,
-              borderRadius: 4,
-              padding: 12,
-              display: "flex",
-              flexDirection: "column",
-              justifyContent: "flex-end",
-              minHeight: 0,
-            }}
-          >
-            {lowerActive && (
-              <>
-                <span
-                  style={{
-                    fontSize: 72,
-                    fontWeight: 700,
-                    fontStyle: "italic",
-                    color: C.terracotta,
-                    lineHeight: 1.05,
-                  }}
-                >
-                  {HK_VALUES[lowerActive] ?? "—"}
-                </span>
-                <span
-                  style={{
-                    fontSize: 20,
-                    fontWeight: 700,
-                    color: C.white,
-                    marginTop: 4,
-                  }}
-                >
-                  {lowerActive}
-                </span>
-              </>
-            )}
-          </div>
+          </button>
         </div>
 
-        {/* Arc timeline overlay */}
-        {bodyDims.width > 0 && (
-          <div
+        {/* ── Bottom nav ── */}
+        <div
+          style={{
+            height: BOTTOM_H,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+            padding: "0 20px",
+            borderTop: `1px solid ${C.border}`,
+            backgroundColor: "rgba(6,14,36,0.85)",
+            flexShrink: 0,
+          }}
+        >
+          <button
             style={{
-              position: "absolute",
-              top: 0,
-              left: 0,
-              width: "100%",
-              height: "100%",
-              pointerEvents: "none",
+              width: 36,
+              height: 36,
+              background: "none",
+              border: "none",
+              cursor: "pointer",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              padding: 0,
             }}
           >
-            <ArcTimeline
-              width={bodyDims.width}
-              height={bodyDims.height}
-              segments={CALL_SEGMENTS}
-            />
-          </div>
-        )}
+            {/* Bookmark icon */}
+            <svg width="22" height="24" viewBox="0 0 22 24" fill="none">
+              <path
+                d="M4 3h14a1 1 0 0 1 1 1v17l-8-4-8 4V4a1 1 0 0 1 1-1z"
+                stroke={C.cream}
+                strokeWidth="1.8"
+                fill="none"
+              />
+              <path
+                d="M11 8 L13 11 L16 9 L14 13 L16 17 L11 14.5 L6 17 L8 13 L6 9 L9 11 Z"
+                fill={C.cream}
+                opacity="0.7"
+              />
+            </svg>
+          </button>
 
-        {/* FAB */}
-        <button
-          style={{
-            position: "absolute",
-            left: SIDEBAR_W - FAB_R,
-            top: "50%",
-            transform: "translateY(-50%)",
-            width: FAB_SIZE,
-            height: FAB_SIZE,
-            borderRadius: FAB_R,
-            background: C.fabRed,
-            border: "none",
-            cursor: "pointer",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            zIndex: 10,
-            boxShadow: "0 3px 6px rgba(0,0,0,0.4)",
-          }}
-        >
-          <span style={{ color: C.white, fontSize: 32, fontWeight: 300, lineHeight: 1 }}>+</span>
-        </button>
-      </div>
+          {/* OHPΔH wordmark */}
+          <span
+            style={{
+              color: C.cream,
+              fontSize: 28,
+              fontWeight: 900,
+              letterSpacing: 5,
+              fontFamily: "Georgia, 'Times New Roman', serif",
+              textShadow: "0 1px 6px rgba(0,0,0,0.6), 0 0 20px rgba(237,232,208,0.12)",
+            }}
+          >
+            OHPΔH
+          </span>
 
-      {/* ── Bottom nav ── */}
-      <div
-        style={{
-          height: BOTTOM_H,
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "space-between",
-          padding: "0 24px",
-          borderTop: `1px solid ${C.border}`,
-          backgroundColor: C.navy,
-          flexShrink: 0,
-        }}
-      >
-        <button
-          style={{
-            width: 36,
-            height: 36,
-            background: "none",
-            border: "none",
-            cursor: "pointer",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-          }}
-        >
-          <span style={{ color: C.cream, fontSize: 20 }}>♡</span>
-        </button>
-        <span style={{ color: C.cream, fontSize: 24, fontWeight: 800, letterSpacing: 4 }}>
-          OHPΔH
-        </span>
-        <button
-          style={{
-            width: 36,
-            height: 36,
-            background: "none",
-            border: "none",
-            cursor: "pointer",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-          }}
-        >
-          <span style={{ color: C.cream, fontSize: 20 }}>☰</span>
-        </button>
+          <button
+            style={{
+              width: 36,
+              height: 36,
+              background: "none",
+              border: "none",
+              cursor: "pointer",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              padding: 0,
+            }}
+          >
+            {/* Hamburger icon */}
+            <svg width="22" height="16" viewBox="0 0 22 16" fill="none">
+              <line x1="0" y1="2" x2="22" y2="2" stroke={C.cream} strokeWidth="2" strokeLinecap="round"/>
+              <line x1="0" y1="8" x2="22" y2="8" stroke={C.cream} strokeWidth="2" strokeLinecap="round"/>
+              <line x1="0" y1="14" x2="22" y2="14" stroke={C.cream} strokeWidth="2" strokeLinecap="round"/>
+            </svg>
+          </button>
+        </div>
       </div>
-    </div>
+    </>
   );
 }
