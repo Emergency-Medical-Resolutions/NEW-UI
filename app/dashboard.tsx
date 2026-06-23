@@ -66,14 +66,9 @@ const LOWER_TABS: Tab[] = [
   { label: 'Calorie', accent: C.accentCalorie },
 ];
 
-// ── Metric values ─────────────────────────────────────────
-const OHPAH_VALUES: Record<string, string> = {
-  FES: '4', WII: '8', Sleep: '6.5', Call: '4',
-};
-
-const HK_VALUES: Record<string, string> = {
-  Cal: '2341', Steps: '5437', Heart: '72', Calorie: '2341',
-};
+// ── Metric values (empty — stale image state) ─────────────
+const OHPAH_VALUES: Record<string, string> = {};
+const HK_VALUES: Record<string, string> = {};
 
 // ── Arc call-log segments (from reference image) ──────────
 const CALL_SEGMENTS: ArcSegment[] = [
@@ -201,27 +196,14 @@ export default function Dashboard() {
             })}
           </View>
 
-          {/* Upper metric box — always shows OHPAH number */}
-          <View style={s.metricBox}>
-            <Text style={s.bigNum}>
-              {OHPAH_VALUES[upperActive] ?? '—'}
-            </Text>
-          </View>
+          {/* Upper metric box — empty (stale) */}
+          <View style={s.metricBox} />
 
           {/* FAB gap */}
           <View style={s.fabGap} />
 
-          {/* Lower metric box — HealthKit tap-to-reveal */}
-          <View style={s.metricBox}>
-            {lowerActive && (
-              <>
-                <Text style={s.bigNum}>
-                  {HK_VALUES[lowerActive] ?? '—'}
-                </Text>
-                <Text style={s.metricLabel}>{lowerActive}</Text>
-              </>
-            )}
-          </View>
+          {/* Lower metric box — empty (stale) */}
+          <View style={s.metricBox} />
 
         </View>
 
