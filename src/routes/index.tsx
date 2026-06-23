@@ -18,8 +18,10 @@ const C = {
   accentCall:    "#5C6470",
   accentCal:     "#0D7490",
   accentSteps:   "#D97706",
-  accentHeart:   "#D6CAB0",
+  accentHeart:   "#D97A7A",
   accentCalorie: "#CA8A04",
+  paper:         "#E8DCC0",
+  paperDark:     "#C9B896",
 };
 
 const SIDEBAR_W = 52;
@@ -286,20 +288,60 @@ function Dashboard() {
   }, []);
 
   return (
-    <>
+    <div
+      style={{
+        display: "flex",
+        flexDirection: "row",
+        height: "100dvh",
+        width: "100%",
+        background:
+          "radial-gradient(ellipse at 30% 20%, #EFE3C8 0%, #D9C8A6 60%, #B8A47E 100%)",
+        position: "relative",
+        overflow: "hidden",
+        fontFamily: "'Arial Narrow', Arial, 'Helvetica Neue', sans-serif",
+        userSelect: "none",
+      }}
+    >
       <WornOverlay />
+
+      {/* Left paper margin with faint serif text */}
+      <div
+        aria-hidden
+        style={{
+          width: 22,
+          flexShrink: 0,
+          background:
+            "linear-gradient(to right, rgba(120,90,50,0.30), transparent)",
+          color: "rgba(60,40,20,0.50)",
+          fontFamily: "Georgia, 'Times New Roman', serif",
+          fontSize: 7,
+          lineHeight: 1.3,
+          padding: "10px 3px",
+          overflow: "hidden",
+          writingMode: "vertical-rl",
+          letterSpacing: 0.2,
+          zIndex: 100,
+        }}
+      >
+        latch contr. ts th of the matter finely woven and bound an old record
+        of breath and motion that fades with each passing hour into memory
+      </div>
+
+
 
       <div
         style={{
+          flex: 1,
           display: "flex",
           flexDirection: "column",
-          height: "100dvh",
           backgroundColor: C.navy,
           overflow: "hidden",
           fontFamily: "'Arial Narrow', Arial, 'Helvetica Neue', sans-serif",
           userSelect: "none",
           position: "relative",
           zIndex: 1,
+          boxShadow:
+            "inset 0 0 60px rgba(0,0,0,0.55), 0 0 12px rgba(0,0,0,0.4)",
         }}
       >
         {/* ── Header ── */}
@@ -483,25 +525,27 @@ function Dashboard() {
                 alignItems: "center",
               }}
             >
-              {(["Daily", "Lifetime", "Custom"] as const).map((t, i) => {
+              {(["Daily", "Lifetime", "Custom"] as const).map((t) => {
                 const active = t === periodTab;
                 return (
                   <button
                     key={t}
                     onClick={() => setPeriodTab(t)}
                     style={{
-                      padding: "6px 12px",
-                      height: 36,
-                      borderRadius: 3,
+                      padding: "7px 14px",
+                      marginRight: 6,
+                      height: 32,
+                      borderRadius: 2,
                       border: "none",
-                      borderRight: i < 2 ? `1px solid ${C.border}` : "none",
-                      background: active ? C.terracotta : "transparent",
-                      color: active ? C.cream : "rgba(237,232,208,0.55)",
-                      fontSize: 13,
-                      fontWeight: active ? 700 : 500,
+                      background: active ? C.terracotta : C.paper,
+                      color: active ? C.paper : "#3A2A1A",
+                      fontSize: 14,
+                      fontWeight: 700,
+                      fontFamily: "Georgia, 'Times New Roman', serif",
                       cursor: "pointer",
                       letterSpacing: 0.3,
-                      boxShadow: active ? "0 1px 4px rgba(0,0,0,0.35)" : "none",
+                      boxShadow:
+                        "0 2px 4px rgba(0,0,0,0.45), inset 0 0 0 1px rgba(0,0,0,0.08)",
                     }}
                   >
                     {t}
@@ -525,18 +569,6 @@ function Dashboard() {
                 background: "rgba(255,255,255,0.02)",
               }}
             >
-              <span
-                style={{
-                  fontSize: 74,
-                  fontWeight: 700,
-                  fontStyle: "italic",
-                  color: C.terracotta,
-                  lineHeight: 1.0,
-                  textShadow: "0 2px 8px rgba(0,0,0,0.5)",
-                }}
-              >
-                {OHPAH_VALUES[upperActive] ?? "—"}
-              </span>
             </div>
 
             {/* FAB gap */}
@@ -557,34 +589,6 @@ function Dashboard() {
                 background: "rgba(255,255,255,0.02)",
               }}
             >
-              {lowerActive && (
-                <>
-                  <span
-                    style={{
-                      fontSize: 74,
-                      fontWeight: 700,
-                      fontStyle: "italic",
-                      color: C.terracotta,
-                      lineHeight: 1.0,
-                      textShadow: "0 2px 8px rgba(0,0,0,0.5)",
-                    }}
-                  >
-                    {HK_VALUES[lowerActive] ?? "—"}
-                  </span>
-                  <span
-                    style={{
-                      fontSize: 18,
-                      fontWeight: 700,
-                      color: C.cream,
-                      marginTop: 4,
-                      letterSpacing: 0.5,
-                      textShadow: "0 1px 3px rgba(0,0,0,0.5)",
-                    }}
-                  >
-                    {lowerActive}
-                  </span>
-                </>
-              )}
             </div>
           </div>
 
@@ -601,7 +605,7 @@ function Dashboard() {
               <ArcTimeline
                 width={bodyDims.width}
                 height={bodyDims.height}
-                segments={CALL_SEGMENTS}
+                segments={[]}
               />
             </div>
           )}
@@ -718,6 +722,29 @@ function Dashboard() {
           </button>
         </div>
       </div>
-    </>
+
+      {/* Right paper margin with faint serif text */}
+      <div
+        aria-hidden
+        style={{
+          width: 22,
+          flexShrink: 0,
+          background:
+            "linear-gradient(to left, rgba(120,90,50,0.30), transparent)",
+          color: "rgba(60,40,20,0.50)",
+          fontFamily: "Georgia, 'Times New Roman', serif",
+          fontSize: 7,
+          lineHeight: 1.3,
+          padding: "10px 3px",
+          overflow: "hidden",
+          writingMode: "vertical-rl",
+          letterSpacing: 0.2,
+          zIndex: 100,
+        }}
+      >
+        of the matter finely woven and bound an old record of breath and
+        motion that fades with each passing hour into memory and dust
+      </div>
+    </div>
   );
 }
