@@ -5,120 +5,82 @@ export const Route = createFileRoute("/")({
   component: Dashboard,
 });
 
-// ── Colors ────────────────────────────────────────────────────
+// ─── Palette (matches reference image) ──────────────────────────────────────
 const C = {
-  navy:          "#0B1E3A",
-  white:         "#FFFFFF",
-  cream:         "#EDE8D0",
-  dimText:       "rgba(237,232,208,0.45)",
-  border:        "rgba(237,232,208,0.22)",
-  dashed:        "rgba(237,232,208,0.38)",
-  terracotta:    "#C0522A",
-  fabRed:        "#B03520",
-  accentCall:    "#5C6470",
-  accentCal:     "#0D7490",
-  accentSteps:   "#D97706",
-  accentHeart:   "#D97A7A",
-  accentCalorie: "#CA8A04",
-  paper:         "#E8DCC0",
-  paperDark:     "#C9B896",
+  paper:        "#E8D8B0",   // outer aged paper
+  paperEdge:    "#C9B582",   // darker paper edge
+  paperInk:     "rgba(60,40,18,0.55)",
+  navy:         "#0C2747",   // worn dark-blue page
+  navyDeep:     "#06182F",
+  cream:        "#F0E6C8",   // light ivory text + tab paper
+  creamDim:     "rgba(240,230,200,0.55)",
+  dashed:       "rgba(240,230,200,0.55)",
+  terracotta:   "#B6452B",   // active Daily tab + FAB
+  fabRed:       "#B6432A",
+  tabSlate:     "#7B7466",   // Call (active gray)
+  tabTeal:      "#3FA3A1",   // Cal
+  tabYellow:    "#E6B84A",   // Steps
+  tabPink:      "#D88478",   // Heart
+  tabOrange:    "#C77A2A",   // Calorie
+  inkOnTab:     "#3A2A18",
 };
 
-const SIDEBAR_W = 52;
-const HEADER_H  = 52;
-const BOTTOM_H  = 66;
-const FAB_SIZE  = 60;
-const FAB_R     = 30;
+const SIDEBAR_W = 44;
+const HEADER_H  = 50;
+const BOTTOM_H  = 60;
+const PAPER_W   = 28;
+const FAB_SIZE  = 58;
 
-// ── Tab definitions ───────────────────────────────────────────
-const UPPER_TABS: { label: string; accent: string | null }[] = [
-  { label: "FES",   accent: null },
-  { label: "WII",   accent: null },
-  { label: "Sleep", accent: null },
-  { label: "Call",  accent: C.accentCall },
+// ─── Tabs ────────────────────────────────────────────────────────────────────
+const UPPER_TABS = [
+  { label: "FES",   bg: C.cream,    ink: C.inkOnTab },
+  { label: "WII",   bg: C.cream,    ink: C.inkOnTab },
+  { label: "Sleep", bg: C.cream,    ink: C.inkOnTab },
+  { label: "Call",  bg: C.tabSlate, ink: C.cream, active: true },
 ];
-const LOWER_TABS: { label: string; accent: string | null }[] = [
-  { label: "Cal",     accent: C.accentCal },
-  { label: "Steps",   accent: C.accentSteps },
-  { label: "Heart",   accent: C.accentHeart },
-  { label: "Calorie", accent: C.accentCalorie },
-];
-
-// ── Metric values ─────────────────────────────────────────────
-const OHPAH_VALUES: Record<string, string> = {
-  FES: "4", WII: "8", Sleep: "6.5", Call: "4",
-};
-const HK_VALUES: Record<string, string> = {
-  Cal: "2341", Steps: "5437", Heart: "72", Calorie: "2341",
-};
-
-// ── Arc call-log segments ─────────────────────────────────────
-const CALL_SEGMENTS = [
-  { h1: 0,    h2: 0.8,  color: "#9B2915" },
-  { h1: 0.8,  h2: 1.8,  color: "#2E6B2E" },
-  { h1: 1.8,  h2: 5.5,  color: "#2E6B2E" },
-  { h1: 5.5,  h2: 6.0,  color: "#9B2915" },
-  { h1: 6.0,  h2: 9.5,  color: "#2E6B2E" },
-  { h1: 9.5,  h2: 11.0, color: "#2E6B2E" },
-  { h1: 11.0, h2: 12.0, color: "#C9A227" },
-  { h1: 12.0, h2: 16.0, color: "#D8D8D8" },
-  { h1: 16.0, h2: 19.0, color: "#2E6B2E" },
-  { h1: 19.0, h2: 20.5, color: "#C9A227" },
-  { h1: 20.5, h2: 22.0, color: "#2E6B2E" },
-  { h1: 22.0, h2: 24.0, color: "#9B2915" },
+const LOWER_TABS = [
+  { label: "Cal",     bg: C.tabTeal,   ink: C.cream },
+  { label: "Steps",   bg: C.tabYellow, ink: C.inkOnTab },
+  { label: "Heart",   bg: C.tabPink,   ink: C.cream },
+  { label: "Calorie", bg: C.tabOrange, ink: C.cream },
 ];
 
-// ── Arc hour labels (matches reference image) ─────────────────
+// 8am → 8am, exactly as labelled in the reference
 const HOUR_LABELS = [
-  "8","9","10","11","12",
-  "1300","1400","1500","1600","1700","1800",
-  "1900","2000","2100","2200","2300",
-  "0000","0100","0200","0300","0400",
-  "0500","0600","0700","8",
+  "8", "9", "10", "11", "12",
+  "1300", "1400", "1500", "1600", "1700",
+  "1800", "1900", "2000", "2100", "2200", "2300",
+  "0000", "0100", "0200", "0300", "0400",
+  "0500", "0600", "0700", "8",
 ];
 
-// ── Arc Timeline ──────────────────────────────────────────────
-function ArcTimeline({
-  width,
-  height,
-  segments = [],
-}: {
-  width: number;
-  height: number;
-  segments?: typeof CALL_SEGMENTS;
-}) {
-  const CX = -15;
+// ─── Arc (right side) ────────────────────────────────────────────────────────
+function Arc({ width, height }: { width: number; height: number }) {
+  // Center the arc off the right side so it curves like a parenthesis
+  const CX = width + width * 0.35;
   const CY = height / 2;
-  const R  = Math.round(width * 1.0);
+  const R  = width + width * 0.25;
 
-  const halfH     = height * 0.43;
+  const halfH     = height * 0.46;
   const halfAngle = Math.asin(Math.min(halfH / R, 0.9999)) * (180 / Math.PI);
-  const A_START   = -halfAngle;
-  const A_END     =  halfAngle;
+  const A_START   = 180 - halfAngle;
+  const A_END     = 180 + halfAngle;
   const SPAN      = A_END - A_START;
-  const HOURS     = 24;
+  const N         = HOUR_LABELS.length - 1;
 
-  const toRad       = (d: number) => (d * Math.PI) / 180;
-  const ptOn        = (angleDeg: number) => ({
-    x: CX + R * Math.cos(toRad(angleDeg)),
-    y: CY + R * Math.sin(toRad(angleDeg)),
+  const toRad = (d: number) => (d * Math.PI) / 180;
+  const pt = (deg: number) => ({
+    x: CX + R * Math.cos(toRad(deg)),
+    y: CY + R * Math.sin(toRad(deg)),
   });
-  const hourToAngle = (h: number) => A_START + (h / HOURS) * SPAN;
 
-  const arcPath = (h1: number, h2: number): string => {
-    const p1  = ptOn(hourToAngle(h1));
-    const p2  = ptOn(hourToAngle(h2));
-    const deg = ((h2 - h1) / HOURS) * SPAN;
-    return (
-      `M${p1.x.toFixed(2)} ${p1.y.toFixed(2)} ` +
-      `A${R} ${R} 0 ${deg > 180 ? 1 : 0} 1 ` +
-      `${p2.x.toFixed(2)} ${p2.y.toFixed(2)}`
-    );
-  };
+  const p1 = pt(A_START);
+  const p2 = pt(A_END);
+  const arcD =
+    `M${p1.x.toFixed(2)} ${p1.y.toFixed(2)} ` +
+    `A${R} ${R} 0 0 1 ${p2.x.toFixed(2)} ${p2.y.toFixed(2)}`;
 
-  const INNER_EDGE = R - 1;
-  const TICK_LEN   = 10;
-  const LABEL_R    = INNER_EDGE - TICK_LEN - 6;
+  const TICK = 8;
 
   return (
     <svg
@@ -127,54 +89,39 @@ function ArcTimeline({
       viewBox={`0 0 ${width} ${height}`}
       style={{ display: "block" }}
     >
-      {/* White arc rail */}
       <path
-        d={arcPath(0, 24)}
+        d={arcD}
         fill="none"
-        stroke="rgba(237,232,208,0.90)"
-        strokeWidth={2}
+        stroke={C.cream}
+        strokeWidth={1.6}
+        strokeLinecap="round"
       />
-
-      {/* Colored call-log segments */}
-      {segments.map((seg, i) => (
-        <path
-          key={i}
-          d={arcPath(seg.h1, seg.h2)}
-          fill="none"
-          stroke={seg.color}
-          strokeWidth={14}
-          strokeLinecap="butt"
-        />
-      ))}
-
-      {/* Tick marks + hour labels */}
-      {HOUR_LABELS.map((label, h) => {
-        const ang = hourToAngle(h);
+      {HOUR_LABELS.map((label, i) => {
+        const ang = A_START + (i / N) * SPAN;
         const a   = toRad(ang);
         const dx  = Math.cos(a);
         const dy  = Math.sin(a);
-        const tx1 = CX + INNER_EDGE * dx;
-        const ty1 = CY + INNER_EDGE * dy;
-        const tx2 = CX + (INNER_EDGE - TICK_LEN) * dx;
-        const ty2 = CY + (INNER_EDGE - TICK_LEN) * dy;
-        const lx  = CX + LABEL_R * dx;
-        const ly  = CY + LABEL_R * dy;
-
+        const x1  = CX + R * dx;
+        const y1  = CY + R * dy;
+        const x2  = CX + (R + TICK) * dx;
+        const y2  = CY + (R + TICK) * dy;
+        const lx  = CX + (R + TICK + 4) * dx;
+        const ly  = CY + (R + TICK + 4) * dy;
         return (
-          <React.Fragment key={h}>
+          <React.Fragment key={i}>
             <line
-              x1={tx1} y1={ty1} x2={tx2} y2={ty2}
-              stroke="rgba(237,232,208,0.55)"
+              x1={x1} y1={y1} x2={x2} y2={y2}
+              stroke={C.cream}
               strokeWidth={1.2}
             />
             <text
               x={lx} y={ly}
-              fill="rgba(237,232,208,0.80)"
-              fontSize={9}
-              fontFamily="'Courier New', Courier, monospace"
-              fontWeight="500"
+              fill={C.cream}
+              fontSize={label.length > 1 ? 10 : 12}
+              fontFamily="Georgia, 'Times New Roman', serif"
+              fontWeight={500}
               dominantBaseline="middle"
-              textAnchor="end"
+              textAnchor="start"
             >
               {label}
             </text>
@@ -185,106 +132,147 @@ function ArcTimeline({
   );
 }
 
-// ── Grain + vignette texture overlay ─────────────────────────
+// ─── Worn texture overlay (grain + vignette + creases) ──────────────────────
 function WornOverlay() {
   return (
     <>
-      {/* SVG fractal noise grain */}
       <svg
+        aria-hidden
         style={{
-          position: "fixed",
-          top: 0, left: 0,
+          position: "absolute", inset: 0,
           width: "100%", height: "100%",
           pointerEvents: "none",
-          zIndex: 90,
+          zIndex: 30,
+          mixBlendMode: "multiply",
+          opacity: 0.55,
         }}
-        xmlns="http://www.w3.org/2000/svg"
       >
         <defs>
-          <filter id="grain" x="0%" y="0%" width="100%" height="100%">
+          <filter id="paper-grain">
             <feTurbulence
               type="fractalNoise"
-              baseFrequency="0.68"
-              numOctaves="4"
-              seed="2"
+              baseFrequency="0.85"
+              numOctaves="2"
+              seed="7"
               stitchTiles="stitch"
-              result="noise"
             />
-            <feColorMatrix type="saturate" values="0" in="noise" result="gray"/>
-            <feBlend in="SourceGraphic" in2="gray" mode="multiply" result="blend"/>
-            <feComposite in="blend" in2="SourceGraphic" operator="in"/>
+            <feColorMatrix type="saturate" values="0" />
+            <feComponentTransfer>
+              <feFuncA type="linear" slope="0.45" />
+            </feComponentTransfer>
           </filter>
         </defs>
-        <rect
-          width="100%" height="100%"
-          fill="rgba(8,18,40,0.18)"
-          filter="url(#grain)"
-        />
+        <rect width="100%" height="100%" filter="url(#paper-grain)" />
       </svg>
 
-      {/* Vignette: darker corners/edges */}
+      {/* Vignette + dark blotches */}
       <div
+        aria-hidden
         style={{
-          position: "fixed",
-          top: 0, left: 0, right: 0, bottom: 0,
+          position: "absolute", inset: 0,
           pointerEvents: "none",
-          zIndex: 88,
+          zIndex: 31,
           background: `
-            radial-gradient(ellipse at 50% 50%, transparent 45%, rgba(0,5,18,0.55) 100%),
-            linear-gradient(to bottom, rgba(0,5,18,0.35) 0%, transparent 12%, transparent 88%, rgba(0,5,18,0.35) 100%)
+            radial-gradient(ellipse at 50% 50%, transparent 40%, rgba(0,0,0,0.55) 100%),
+            radial-gradient(ellipse at 78% 35%, rgba(0,0,0,0.40) 0%, transparent 22%),
+            radial-gradient(ellipse at 22% 70%, rgba(0,0,0,0.30) 0%, transparent 25%),
+            radial-gradient(ellipse at 65% 75%, rgba(0,0,0,0.30) 0%, transparent 18%)
           `,
         }}
       />
 
-      {/* Worn blue variation patches */}
+      {/* Horizontal crease through the middle */}
       <div
+        aria-hidden
         style={{
-          position: "fixed",
-          top: 0, left: 0, right: 0, bottom: 0,
+          position: "absolute",
+          left: 0, right: 0,
+          top: "50%",
+          height: 2,
+          transform: "translateY(-1px)",
           pointerEvents: "none",
-          zIndex: 87,
-          background: `
-            radial-gradient(ellipse at 15% 40%, rgba(12,30,70,0.45) 0%, transparent 45%),
-            radial-gradient(ellipse at 85% 60%, rgba(5,15,45,0.50) 0%, transparent 40%),
-            radial-gradient(ellipse at 40% 80%, rgba(8,20,55,0.35) 0%, transparent 35%)
-          `,
+          zIndex: 32,
+          background:
+            "linear-gradient(to right, transparent 0%, rgba(0,0,0,0.35) 30%, rgba(255,240,210,0.10) 50%, rgba(0,0,0,0.35) 70%, transparent 100%)",
+          boxShadow: "0 1px 0 rgba(255,240,210,0.10)",
         }}
       />
     </>
   );
 }
 
-// ── Dashboard ─────────────────────────────────────────────────
+function PaperMargin({ side }: { side: "left" | "right" }) {
+  const text =
+    side === "left"
+      ? "latch contr. ts th of the matter, finely woven and bound an old record of breath and motion that fades with each passing hour into memory and dust slowly disappearing"
+      : "of the matter finely woven and bound an old record of breath and motion that fades with each passing hour into memory and dust the time passes and fades quietly";
+  return (
+    <div
+      aria-hidden
+      style={{
+        width: PAPER_W,
+        flexShrink: 0,
+        background: `
+          linear-gradient(${side === "left" ? "to right" : "to left"},
+            ${C.paperEdge} 0%, ${C.paper} 60%, ${C.paper} 100%)
+        `,
+        position: "relative",
+        overflow: "hidden",
+        boxShadow:
+          side === "left"
+            ? "inset -3px 0 6px rgba(0,0,0,0.45)"
+            : "inset 3px 0 6px rgba(0,0,0,0.45)",
+      }}
+    >
+      <div
+        style={{
+          position: "absolute",
+          top: 8, bottom: 8,
+          [side]: 2,
+          width: PAPER_W - 6,
+          color: C.paperInk,
+          fontFamily: "Georgia, 'Times New Roman', serif",
+          fontSize: 7,
+          lineHeight: 1.25,
+          writingMode: "vertical-rl",
+          letterSpacing: 0.2,
+          overflow: "hidden",
+          transform: side === "left" ? "rotate(180deg)" : "none",
+        }}
+      >
+        {text}
+      </div>
+    </div>
+  );
+}
+
+// ─── Page ────────────────────────────────────────────────────────────────────
 function Dashboard() {
   const [time, setTime] = useState("14:22");
   useEffect(() => {
-    const fmt = () => {
+    const tick = () => {
       const d = new Date();
       setTime(
         `${String(d.getHours()).padStart(2, "0")}:${String(d.getMinutes()).padStart(2, "0")}`
       );
     };
-    fmt();
-    const id = setInterval(fmt, 1000);
+    tick();
+    const id = setInterval(tick, 1000);
     return () => clearInterval(id);
   }, []);
 
-  const [upperActive, setUpperActive] = useState("FES");
-  const [lowerActive, setLowerActive] = useState<string | null>("Steps");
-  const [periodTab, setPeriodTab]   = useState("Daily");
+  const [period, setPeriod] = useState<"Daily" | "Lifetime" | "Custom">("Daily");
 
-  const bodyRef = useRef<HTMLDivElement>(null);
-  const [bodyDims, setBodyDims] = useState({ width: 0, height: 0 });
-
+  const arcRef = useRef<HTMLDivElement>(null);
+  const [arcDims, setArcDims] = useState({ width: 0, height: 0 });
   useEffect(() => {
-    const el = bodyRef.current;
+    const el = arcRef.current;
     if (!el) return;
-    const observer = new ResizeObserver(([entry]) => {
-      const { width, height } = entry.contentRect;
-      setBodyDims({ width, height });
+    const ro = new ResizeObserver(([e]) => {
+      setArcDims({ width: e.contentRect.width, height: e.contentRect.height });
     });
-    observer.observe(el);
-    return () => observer.disconnect();
+    ro.observe(el);
+    return () => ro.disconnect();
   }, []);
 
   return (
@@ -294,76 +282,51 @@ function Dashboard() {
         flexDirection: "row",
         height: "100dvh",
         width: "100%",
-        background:
-          "radial-gradient(ellipse at 30% 20%, #EFE3C8 0%, #D9C8A6 60%, #B8A47E 100%)",
-        position: "relative",
-        overflow: "hidden",
-        fontFamily: "'Arial Narrow', Arial, 'Helvetica Neue', sans-serif",
+        background: C.paper,
         userSelect: "none",
+        overflow: "hidden",
+        fontFamily: "'Helvetica Neue', Arial, sans-serif",
       }}
     >
-      <WornOverlay />
+      <PaperMargin side="left" />
 
-      {/* Left paper margin with faint serif text */}
-      <div
-        aria-hidden
-        style={{
-          width: 22,
-          flexShrink: 0,
-          background:
-            "linear-gradient(to right, rgba(120,90,50,0.30), transparent)",
-          color: "rgba(60,40,20,0.50)",
-          fontFamily: "Georgia, 'Times New Roman', serif",
-          fontSize: 7,
-          lineHeight: 1.3,
-          padding: "10px 3px",
-          overflow: "hidden",
-          writingMode: "vertical-rl",
-          letterSpacing: 0.2,
-          zIndex: 100,
-        }}
-      >
-        latch contr. ts th of the matter finely woven and bound an old record
-        of breath and motion that fades with each passing hour into memory
-      </div>
-
-
-
+      {/* Worn navy book page */}
       <div
         style={{
           flex: 1,
           display: "flex",
           flexDirection: "column",
-          backgroundColor: C.navy,
-          overflow: "hidden",
-          fontFamily: "'Arial Narrow', Arial, 'Helvetica Neue', sans-serif",
-          userSelect: "none",
+          background: `
+            radial-gradient(ellipse at 50% 50%, ${C.navy} 0%, ${C.navyDeep} 110%)
+          `,
           position: "relative",
-          zIndex: 1,
-          boxShadow:
-            "inset 0 0 60px rgba(0,0,0,0.55), 0 0 12px rgba(0,0,0,0.4)",
+          overflow: "hidden",
+          boxShadow: "inset 0 0 50px rgba(0,0,0,0.6)",
         }}
       >
-        {/* ── Header ── */}
+        <WornOverlay />
+
+        {/* Header */}
         <div
           style={{
+            position: "relative",
+            zIndex: 40,
             height: HEADER_H,
+            flexShrink: 0,
             display: "flex",
             alignItems: "center",
             justifyContent: "space-between",
             padding: "0 14px",
-            borderBottom: `1px solid ${C.border}`,
-            flexShrink: 0,
-            background: "rgba(8,20,45,0.5)",
           }}
         >
           <span
             style={{
               color: C.cream,
-              fontSize: 16,
+              fontSize: 17,
               fontWeight: 700,
-              letterSpacing: 0.4,
-              textShadow: "0 1px 3px rgba(0,0,0,0.6)",
+              fontFamily: "Georgia, 'Times New Roman', serif",
+              letterSpacing: 0.3,
+              textShadow: "0 1px 3px rgba(0,0,0,0.7)",
             }}
           >
             FF M. Harvey - SCFD
@@ -371,147 +334,116 @@ function Dashboard() {
           <span
             style={{
               color: C.cream,
-              fontSize: 16,
+              fontSize: 17,
               fontWeight: 700,
-              letterSpacing: 1,
+              fontFamily: "Georgia, 'Times New Roman', serif",
               fontVariantNumeric: "tabular-nums",
-              textShadow: "0 1px 3px rgba(0,0,0,0.6)",
+              letterSpacing: 0.5,
+              textShadow: "0 1px 3px rgba(0,0,0,0.7)",
             }}
           >
             {time}
           </span>
         </div>
 
-        {/* ── Body ── */}
+        {/* Body row */}
         <div
-          ref={bodyRef}
           style={{
             flex: 1,
             display: "flex",
             flexDirection: "row",
             position: "relative",
-            overflow: "hidden",
+            minHeight: 0,
+            zIndex: 35,
           }}
         >
-          {/* Left sidebar */}
+          {/* Left tab rail */}
           <div
             style={{
               width: SIDEBAR_W,
               flexShrink: 0,
               display: "flex",
               flexDirection: "column",
-              alignItems: "center",
               justifyContent: "space-between",
-              padding: "0",
-              borderRight: `1px solid ${C.border}`,
+              padding: "4px 0",
             }}
           >
-            {/* Upper tabs */}
-            <div style={{ display: "flex", flexDirection: "column", alignItems: "center", width: "100%" }}>
-              {UPPER_TABS.map((tab) => {
-                const active = tab.label === upperActive;
-                const bg = active ? (tab.accent ?? C.cream) : "transparent";
-                const textColor = active
-                  ? tab.accent ? C.cream : C.navy
-                  : "rgba(237,232,208,0.40)";
-                return (
-                  <button
-                    key={tab.label}
-                    onClick={() => setUpperActive(tab.label)}
+            <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
+              {UPPER_TABS.map((t) => (
+                <div
+                  key={t.label}
+                  style={{
+                    height: 70,
+                    background: t.bg,
+                    margin: "0 0 0 2px",
+                    borderRadius: "0 2px 2px 0",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    boxShadow:
+                      "1px 1px 3px rgba(0,0,0,0.5), inset 0 0 0 1px rgba(0,0,0,0.08)",
+                  }}
+                >
+                  <span
                     style={{
-                      width: "100%",
-                      height: 48,
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                      background: bg,
-                      border: "none",
-                      borderBottom: `1px solid ${C.border}`,
-                      cursor: "pointer",
-                      padding: 0,
-                      boxShadow: active ? "inset 0 0 8px rgba(0,0,0,0.25)" : "none",
+                      color: t.ink,
+                      fontFamily: "Georgia, 'Times New Roman', serif",
+                      fontWeight: 700,
+                      fontSize: 13,
+                      transform: "rotate(-90deg)",
+                      whiteSpace: "nowrap",
+                      letterSpacing: 0.3,
                     }}
                   >
-                    <span
-                      style={{
-                        color: textColor,
-                        fontSize: 10,
-                        fontWeight: 800,
-                        letterSpacing: 1,
-                        textTransform: "uppercase",
-                        transform: "rotate(-90deg)",
-                        display: "inline-block",
-                        whiteSpace: "nowrap",
-                        textShadow: active ? "none" : "0 1px 2px rgba(0,0,0,0.5)",
-                      }}
-                    >
-                      {tab.label}
-                    </span>
-                  </button>
-                );
-              })}
+                    {t.label}
+                  </span>
+                </div>
+              ))}
             </div>
 
-            {/* FAB gap */}
-            <div style={{ height: FAB_SIZE + 20, flexShrink: 0 }} />
-
-            {/* Lower tabs */}
-            <div style={{ display: "flex", flexDirection: "column", alignItems: "center", width: "100%" }}>
-              {LOWER_TABS.map((tab) => {
-                const active = tab.label === lowerActive;
-                const bg = active ? (tab.accent ?? C.cream) : "transparent";
-                const textColor = active
-                  ? tab.accent === C.accentHeart ? C.navy : C.cream
-                  : "rgba(237,232,208,0.40)";
-                return (
-                  <button
-                    key={tab.label}
-                    onClick={() =>
-                      setLowerActive((p) => (p === tab.label ? null : tab.label))
-                    }
+            <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
+              {LOWER_TABS.map((t) => (
+                <div
+                  key={t.label}
+                  style={{
+                    height: 70,
+                    background: t.bg,
+                    margin: "0 0 0 2px",
+                    borderRadius: "0 2px 2px 0",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    boxShadow:
+                      "1px 1px 3px rgba(0,0,0,0.5), inset 0 0 0 1px rgba(0,0,0,0.08)",
+                  }}
+                >
+                  <span
                     style={{
-                      width: "100%",
-                      height: 48,
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                      background: bg,
-                      border: "none",
-                      borderTop: `1px solid ${C.border}`,
-                      cursor: "pointer",
-                      padding: 0,
-                      boxShadow: active ? "inset 0 0 8px rgba(0,0,0,0.25)" : "none",
+                      color: t.ink,
+                      fontFamily: "Georgia, 'Times New Roman', serif",
+                      fontWeight: 700,
+                      fontSize: 13,
+                      transform: "rotate(-90deg)",
+                      whiteSpace: "nowrap",
+                      letterSpacing: 0.3,
                     }}
                   >
-                    <span
-                      style={{
-                        color: textColor,
-                        fontSize: 10,
-                        fontWeight: 800,
-                        letterSpacing: 1,
-                        textTransform: "uppercase",
-                        transform: "rotate(-90deg)",
-                        display: "inline-block",
-                        whiteSpace: "nowrap",
-                        textShadow: active ? "none" : "0 1px 2px rgba(0,0,0,0.5)",
-                      }}
-                    >
-                      {tab.label}
-                    </span>
-                  </button>
-                );
-              })}
+                    {t.label}
+                  </span>
+                </div>
+              ))}
             </div>
           </div>
 
-          {/* Center */}
+          {/* Center column */}
           <div
             style={{
               flex: 1,
               display: "flex",
               flexDirection: "column",
-              padding: "0 6px 8px 8px",
+              padding: "6px 8px 8px 8px",
               minWidth: 0,
+              position: "relative",
             }}
           >
             {/* Period tabs */}
@@ -519,33 +451,30 @@ function Dashboard() {
               style={{
                 display: "flex",
                 flexDirection: "row",
-                borderBottom: `1px solid ${C.border}`,
+                gap: 6,
                 flexShrink: 0,
-                height: 48,
-                alignItems: "center",
+                marginBottom: 10,
               }}
             >
               {(["Daily", "Lifetime", "Custom"] as const).map((t) => {
-                const active = t === periodTab;
+                const active = t === period;
                 return (
                   <button
                     key={t}
-                    onClick={() => setPeriodTab(t)}
+                    onClick={() => setPeriod(t)}
                     style={{
-                      padding: "7px 14px",
-                      marginRight: 6,
-                      height: 32,
-                      borderRadius: 2,
+                      padding: "6px 14px",
                       border: "none",
-                      background: active ? C.terracotta : C.paper,
-                      color: active ? C.paper : "#3A2A1A",
+                      background: active ? C.terracotta : C.cream,
+                      color: active ? C.cream : C.inkOnTab,
+                      fontFamily: "Georgia, 'Times New Roman', serif",
                       fontSize: 14,
                       fontWeight: 700,
-                      fontFamily: "Georgia, 'Times New Roman', serif",
+                      borderRadius: 2,
                       cursor: "pointer",
                       letterSpacing: 0.3,
                       boxShadow:
-                        "0 2px 4px rgba(0,0,0,0.45), inset 0 0 0 1px rgba(0,0,0,0.08)",
+                        "1px 2px 4px rgba(0,0,0,0.5), inset 0 0 0 1px rgba(0,0,0,0.08)",
                     }}
                   >
                     {t}
@@ -554,89 +483,74 @@ function Dashboard() {
               })}
             </div>
 
-            {/* Upper metric box — OHPAH value */}
+            {/* Upper dashed box */}
             <div
               style={{
                 flex: 1,
-                border: `1.5px dashed ${C.dashed}`,
-                borderRadius: 3,
-                marginTop: 6,
-                padding: 12,
-                display: "flex",
-                flexDirection: "column",
-                justifyContent: "flex-end",
+                border: `2px dashed ${C.dashed}`,
+                borderRadius: 4,
                 minHeight: 0,
-                background: "rgba(255,255,255,0.02)",
+                marginBottom: 28,
               }}
-            >
-            </div>
+            />
 
-            {/* FAB gap */}
-            <div style={{ height: FAB_SIZE + 6, flexShrink: 0 }} />
-
-            {/* Lower metric box — HealthKit value */}
+            {/* Lower dashed box */}
             <div
               style={{
                 flex: 1,
-                border: `1.5px dashed ${C.dashed}`,
-                borderRadius: 3,
-                marginBottom: 6,
-                padding: 12,
-                display: "flex",
-                flexDirection: "column",
-                justifyContent: "flex-end",
+                border: `2px dashed ${C.dashed}`,
+                borderRadius: 4,
                 minHeight: 0,
-                background: "rgba(255,255,255,0.02)",
               }}
-            >
-            </div>
+            />
           </div>
 
-          {/* Arc timeline overlay */}
-          {bodyDims.width > 0 && (
-            <div
-              style={{
-                position: "absolute",
-                top: 0, left: 0,
-                width: "100%", height: "100%",
-                pointerEvents: "none",
-              }}
-            >
-              <ArcTimeline
-                width={bodyDims.width}
-                height={bodyDims.height}
-                segments={[]}
-              />
-            </div>
-          )}
+          {/* Arc overlay (right side, drawn over the dashed box edges) */}
+          <div
+            ref={arcRef}
+            style={{
+              position: "absolute",
+              top: 0,
+              right: 0,
+              bottom: 0,
+              width: "44%",
+              pointerEvents: "none",
+              zIndex: 36,
+            }}
+          >
+            {arcDims.width > 0 && (
+              <Arc width={arcDims.width} height={arcDims.height} />
+            )}
+          </div>
 
           {/* FAB */}
           <button
             style={{
               position: "absolute",
-              left: SIDEBAR_W - FAB_R,
+              left: SIDEBAR_W - FAB_SIZE / 2 + 2,
               top: "50%",
               transform: "translateY(-50%)",
               width: FAB_SIZE,
               height: FAB_SIZE,
               borderRadius: "50%",
-              background: `radial-gradient(circle at 38% 38%, #D04030, ${C.fabRed} 60%, #7A1A10)`,
               border: "none",
               cursor: "pointer",
+              background: `radial-gradient(circle at 38% 35%, #D44A30, ${C.fabRed} 60%, #6E1A0E)`,
+              boxShadow:
+                "0 4px 10px rgba(0,0,0,0.6), inset 0 1px 2px rgba(255,140,100,0.3)",
               display: "flex",
               alignItems: "center",
               justifyContent: "center",
-              zIndex: 10,
-              boxShadow: "0 4px 12px rgba(0,0,0,0.55), inset 0 1px 2px rgba(255,120,80,0.25)",
+              zIndex: 50,
             }}
           >
             <span
               style={{
                 color: C.cream,
-                fontSize: 34,
-                fontWeight: 200,
+                fontSize: 38,
+                fontWeight: 300,
                 lineHeight: 1,
-                marginTop: -2,
+                marginTop: -3,
               }}
             >
               +
@@ -644,107 +558,59 @@ function Dashboard() {
           </button>
         </div>
 
-        {/* ── Bottom nav ── */}
+        {/* Bottom bar */}
         <div
           style={{
+            position: "relative",
+            zIndex: 40,
             height: BOTTOM_H,
+            flexShrink: 0,
             display: "flex",
             alignItems: "center",
             justifyContent: "space-between",
             padding: "0 20px",
-            borderTop: `1px solid ${C.border}`,
-            backgroundColor: "rgba(6,14,36,0.85)",
-            flexShrink: 0,
+            background: "rgba(6,18,38,0.55)",
+            borderTop: "1px solid rgba(0,0,0,0.4)",
+            boxShadow: "inset 0 1px 0 rgba(255,240,210,0.06)",
           }}
         >
-          <button
-            style={{
-              width: 36,
-              height: 36,
-              background: "none",
-              border: "none",
-              cursor: "pointer",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              padding: 0,
-            }}
-          >
-            {/* Bookmark icon */}
-            <svg width="22" height="24" viewBox="0 0 22 24" fill="none">
-              <path
-                d="M4 3h14a1 1 0 0 1 1 1v17l-8-4-8 4V4a1 1 0 0 1 1-1z"
-                stroke={C.cream}
-                strokeWidth="1.8"
-                fill="none"
-              />
-              <path
-                d="M11 8 L13 11 L16 9 L14 13 L16 17 L11 14.5 L6 17 L8 13 L6 9 L9 11 Z"
-                fill={C.cream}
-                opacity="0.7"
-              />
-            </svg>
-          </button>
+          <svg width="22" height="26" viewBox="0 0 22 26" fill="none">
+            <path
+              d="M3 2h16a1 1 0 0 1 1 1v21l-9-5-9 5V3a1 1 0 0 1 1-1z"
+              stroke={C.cream}
+              strokeWidth="1.6"
+              fill="none"
+            />
+            <path
+              d="M11 7 L12.5 10.5 L16 11 L13.3 13.4 L14 17 L11 15.2 L8 17 L8.7 13.4 L6 11 L9.5 10.5 Z"
+              fill={C.cream}
+              opacity="0.85"
+            />
+          </svg>
 
-          {/* OHPΔH wordmark */}
           <span
             style={{
               color: C.cream,
-              fontSize: 28,
-              fontWeight: 900,
-              letterSpacing: 5,
+              fontSize: 30,
+              fontWeight: 700,
+              letterSpacing: 6,
               fontFamily: "Georgia, 'Times New Roman', serif",
-              textShadow: "0 1px 6px rgba(0,0,0,0.6), 0 0 20px rgba(237,232,208,0.12)",
+              textShadow:
+                "0 1px 4px rgba(0,0,0,0.7), 0 0 14px rgba(240,230,200,0.18)",
             }}
           >
-            OHPΔH
+            OHP<span style={{ fontSize: 26 }}>Δ</span>H
           </span>
 
-          <button
-            style={{
-              width: 36,
-              height: 36,
-              background: "none",
-              border: "none",
-              cursor: "pointer",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              padding: 0,
-            }}
-          >
-            {/* Hamburger icon */}
-            <svg width="22" height="16" viewBox="0 0 22 16" fill="none">
-              <line x1="0" y1="2" x2="22" y2="2" stroke={C.cream} strokeWidth="2" strokeLinecap="round"/>
-              <line x1="0" y1="8" x2="22" y2="8" stroke={C.cream} strokeWidth="2" strokeLinecap="round"/>
-              <line x1="0" y1="14" x2="22" y2="14" stroke={C.cream} strokeWidth="2" strokeLinecap="round"/>
-            </svg>
-          </button>
+          <svg width="24" height="18" viewBox="0 0 24 18" fill="none">
+            <line x1="0" y1="2"  x2="24" y2="2"  stroke={C.cream} strokeWidth="2" strokeLinecap="round" />
+            <line x1="0" y1="9"  x2="24" y2="9"  stroke={C.cream} strokeWidth="2" strokeLinecap="round" />
+            <line x1="0" y1="16" x2="24" y2="16" stroke={C.cream} strokeWidth="2" strokeLinecap="round" />
+          </svg>
         </div>
       </div>
 
-      {/* Right paper margin with faint serif text */}
-      <div
-        aria-hidden
-        style={{
-          width: 22,
-          flexShrink: 0,
-          background:
-            "linear-gradient(to left, rgba(120,90,50,0.30), transparent)",
-          color: "rgba(60,40,20,0.50)",
-          fontFamily: "Georgia, 'Times New Roman', serif",
-          fontSize: 7,
-          lineHeight: 1.3,
-          padding: "10px 3px",
-          overflow: "hidden",
-          writingMode: "vertical-rl",
-          letterSpacing: 0.2,
-          zIndex: 100,
-        }}
-      >
-        of the matter finely woven and bound an old record of breath and
-        motion that fades with each passing hour into memory and dust
-      </div>
+      <PaperMargin side="right" />
     </div>
   );
 }
