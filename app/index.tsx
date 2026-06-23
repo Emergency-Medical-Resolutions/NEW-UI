@@ -1,90 +1,96 @@
 /**
- * Splash screen — static "Tactical Medical Interface" branded screen.
- * Faithful port of .stitch/designs/splash-screen.html:
- *   deep navy (#051424) base · crimson + white atmospheric glows · vignette ·
- *   Δ brand mark · OHPAH wordmark · "Your Record. Always." tagline
- * Displays briefly, then fades into the dashboard.
+ * Splash screen — plays the OHPAH field-journal intro video full-screen,
+ * fades a subtle wordmark over it, then transitions to the dashboard.
  */
 import React, { useEffect, useRef } from 'react';
 import { Animated, StyleSheet, View } from 'react-native';
 import { router } from 'expo-router';
-import SplashOverlay from '../components/SplashOverlay';
-import { COLORS as C } from '../constants/theme';
+import { useVideoPlayer, VideoView } from 'expo-video';
+import { COLORS as C, FONTS as F } from '../constants/theme';
 
-const HOLD_DURATION = 3200; // ms on screen before transition
+const SPLASH_VIDEO = require('../assets/splash.mp4');
+const MIN_DURATION = 3600; // ms before transitioning
 
 export default function SplashScreen() {
-  const fadeAnim = useRef(new Animated.Value(1)).current;
+  const fade = useRef(new Animated.Value(1)).current;
+  const wordmark = useRef(new Animated.Value(0)).current;
+
+  const player = useVideoPlayer(SPLASH_VIDEO, (p) => {
+    p.loop = true;
+    p.muted = true;
+    p.play();
+  });
 
   useEffect(() => {
+    Animated.timing(wordmark, {
+      toValue: 1,
+      duration: 1200,
+      delay: 500,
+      useNativeDriver: true,
+    }).start();
+
     const t = setTimeout(() => {
-      Animated.timing(fadeAnim, {
+      Animated.timing(fade, {
         toValue: 0,
         duration: 600,
         useNativeDriver: true,
       }).start(() => router.replace('/dashboard'));
-    }, HOLD_DURATION);
+    }, MIN_DURATION);
+
     return () => clearTimeout(t);
   }, []);
 
   return (
-    <View style={styles.container}>
-      <Animated.View style={[StyleSheet.absoluteFill, { opacity: fadeAnim }]}>
-        {/* Atmospheric glows (behind branding) */}
-        <View style={styles.crimsonGlow} pointerEvents="none" />
-        <View style={styles.whiteGlow} pointerEvents="none" />
+    <Animated.View style={[styles.container, { opacity: fade }]}>
+      <VideoView
+        style={StyleSheet.absoluteFill}
+        player={player}
+        contentFit="cover"
+        nativeControls={false}
+        pointerEvents="none"
+      />
 
-        {/* Branding */}
-        <SplashOverlay entranceDelay={250} />
+      {/* Subtle darkening so the wordmark reads over the footage */}
+      <View style={styles.scrim} pointerEvents="none" />
 
-        {/* Vignette for the tactical, military feel */}
-        <View style={styles.vignette} pointerEvents="none" />
+      {/* Branding */}
+      <Animated.View style={[styles.brand, { opacity: wordmark }]} pointerEvents="none">
+        <Animated.Text style={styles.wordmark}>
+          OHP{'\u0394'}H
+        </Animated.Text>
+        <Animated.Text style={styles.tagline}>Your Record. Always.</Animated.Text>
       </Animated.View>
-    </View>
+    </Animated.View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: C.background, // #051424
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  crimsonGlow: {
-    position: 'absolute',
-    top: '50%',
-    left: '50%',
-    width: 320,
-    height: 320,
-    marginLeft: -160,
-    marginTop: -160,
-    borderRadius: 160,
-    backgroundColor: 'transparent',
-    shadowColor: '#7f1d1d',
-    shadowOffset: { width: 0, height: 0 },
-    shadowOpacity: 0.6,
-    shadowRadius: 110,
-  },
-  whiteGlow: {
-    position: 'absolute',
-    top: '46%',
-    left: '50%',
-    width: 220,
-    height: 220,
-    marginLeft: -110,
-    marginTop: -110,
-    borderRadius: 110,
-    backgroundColor: 'transparent',
-    shadowColor: C.primary,
-    shadowOffset: { width: 0, height: 0 },
-    shadowOpacity: 0.18,
-    shadowRadius: 70,
-  },
-  vignette: {
+  container: { flex: 1, backgroundColor: C.navyDeep },
+  scrim: {
     ...StyleSheet.absoluteFillObject,
-    shadowColor: '#000',
-    // Inset-like darkening at the edges via a large inner shadow approximation
-    backgroundColor: 'transparent',
+    backgroundColor: 'rgba(14,26,48,0.28)',
+  },
+  brand: {
+    ...StyleSheet.absoluteFillObject,
+    alignItems: 'center',
+    justifyContent: 'flex-end',
+    paddingBottom: 80,
+  },
+  wordmark: {
+    color: C.cream,
+    fontSize: 46,
+    fontFamily: F.display,
+    letterSpacing: 6,
+    textShadowColor: 'rgba(0,0,0,0.5)',
+    textShadowOffset: { width: 0, height: 2 },
+    textShadowRadius: 8,
+  },
+  tagline: {
+    color: C.cream,
+    fontSize: 16,
+    fontFamily: F.serif,
+    letterSpacing: 2,
+    marginTop: 8,
+    opacity: 0.9,
   },
 });

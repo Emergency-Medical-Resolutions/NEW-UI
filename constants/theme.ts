@@ -1,49 +1,65 @@
 /**
- * OHPAH — "Tactical Medical Interface" design tokens.
- * Source of truth: .stitch/designs/dashboard.html (+ dashboard.png) & splash-screen.html
+ * OHPAH — "Field Journal" vintage design tokens.
+ * Source of truth: user reference image (aged-paper + weathered-navy tactical dashboard).
  */
 export const COLORS = {
-  // Surfaces (cool dark navy)
-  background:     '#051424', // surface / surface-dim
-  surfaceLow:     '#0d1c2d', // surface-container-low  (sidebar)
-  surfaceLowest:  '#010f1f', // surface-container-lowest (arc column)
-  surfaceHighest: '#273647', // surface-container-highest (bottom nav)
+  // Surfaces
+  paper:      '#cbb892', // aged paper (outer frame) — texture fallback
+  navyCard:   '#16243f', // weathered navy card — texture fallback
+  navyDeep:   '#0e1a30',
 
-  // Primary (light blue-grey) + text
-  primary:          '#c1c6db',
-  onPrimary:        '#2a3040',
-  onSurface:        '#d4e4fa',
-  onSurfaceVariant: '#c6c6cd',
-  outline:          '#909097',
-  outlineVariant:   '#45464c', // hairline borders
+  // Ink / text on navy
+  cream:      '#efe3c8', // primary parchment text
+  creamDim:   '#c8bb9c',
+  inkOnCream: '#3a2f22', // dark text on cream buttons
 
-  // Error / FAB
-  errorContainer:   '#93000a',
-  onErrorContainer: '#ffdad6',
+  // Accents
+  terracotta:   '#c0512c', // Daily tab
+  fabRed:       '#d8442a', // + button (brighter red-orange)
+  onTerracotta: '#f4e9d2',
 
-  // Arc timeline
-  arcRail:      '#45464c',
-  tickStroke:   '#45464c',
-  tickLabel:    '#909097',
-  dashedBorder: '#45464c',
-  segRed:       '#93000a',
-  segGreen:     '#4ade80',
-  segAmber:     '#facc15',
-  segWhite:     '#ffffff',
+  // Sidebar tab colors
+  tabCream:  '#e8dcc0',
+  tabGrey:   '#a89f8d', // Call (selected)
+  tabTeal:   '#4a9a92', // Cal
+  tabYellow: '#e6c34d', // Steps
+  tabCoral:  '#d96a58', // Heart
+  tabOrange: '#d99a4e', // Calorie
 
-  // Legacy aliases (kept so older imports stay valid)
-  navy:    '#051424',
-  white:   '#d4e4fa',
-  cream:   '#d4e4fa',
-  crimson: '#93000a',
-  dimText: '#909097',
-  border:  '#45464c',
+  // Lines / arc
+  dashedBorder: '#efe3c8',
+  arcLine:      '#efe3c8',
+  tickStroke:   '#efe3c8',
+  tickLabel:    '#efe3c8',
+
+  // Arc call-log segment colors (kept for optional overlays)
+  segRed:    '#c0392b',
+  segGreen:  '#5a9e6f',
+  segAmber:  '#e6c34d',
+  segWhite:  '#efe3c8',
+
+  // Legacy aliases (keep older imports valid)
+  background: '#16243f',
+  navy:       '#16243f',
+  white:      '#efe3c8',
+  crimson:    '#c0512c',
+  dimText:    '#c8bb9c',
+  border:     '#efe3c8',
+  primary:    '#efe3c8',
+} as const;
+
+export const FONTS = {
+  display: 'PlayfairDisplay_700Bold',          // header, wordmark, big numerals
+  displayItalic: 'PlayfairDisplay_700Bold_Italic',
+  serif: 'EBGaramond_500Medium',               // tabs, labels
+  serifBold: 'EBGaramond_600SemiBold',
 } as const;
 
 export const LAYOUT = {
-  sidebarWidth:    44,
+  framePadding:    10,
+  sidebarWidth:    40,
   headerHeight:    52,
-  bottomNavHeight: 58,
-  fabSize:         54,
-  fabRadius:       27,
+  bottomNavHeight: 64,
+  fabSize:         62,
+  fabRadius:       31,
 } as const;

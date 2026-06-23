@@ -10,6 +10,8 @@
     "dev": "expo start --web"
   },
   "dependencies": {
+    "@expo-google-fonts/eb-garamond": "^0.4.2",
+    "@expo-google-fonts/playfair-display": "^0.4.2",
     "@expo/metro-runtime": "~4.0.0",
     "expo": "~52.0.0",
     "expo-blur": "^56.0.3",
