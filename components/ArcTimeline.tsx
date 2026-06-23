@@ -87,12 +87,13 @@ export default function ArcTimeline({ width, height, segments = [] }: Props) {
   return (
     <Svg width={width} height={height} viewBox={`0 0 ${width} ${height}`}>
 
-      {/* ── White arc rail (full 24 h) ── */}
+      {/* ── Faint dashed reference rail (full 24 h) ── */}
       <Path
         d={arcPath(0, 24)}
         fill="none"
         stroke={COLORS.arcRail}
-        strokeWidth={2}
+        strokeWidth={1}
+        strokeDasharray="2 4"
       />
 
       {/* ── Colour segments (call logs) ── */}
@@ -102,7 +103,7 @@ export default function ArcTimeline({ width, height, segments = [] }: Props) {
           d={arcPath(seg.h1, seg.h2)}
           fill="none"
           stroke={seg.color}
-          strokeWidth={14}
+          strokeWidth={6}
           strokeLinecap="butt"
         />
       ))}

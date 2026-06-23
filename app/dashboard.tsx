@@ -1,12 +1,9 @@
 /**
- * OHPAH Dashboard — React Native implementation of V0-rendered design.
+ * OHPAH — Biometric Command Dashboard
+ * Faithful React Native port of .stitch/designs/dashboard.html (+ dashboard.png).
  *
- * Visual spec from reference image:
- *  - Sidebar tabs each have per-metric accent colors
- *  - Active period tab (Daily) has terracotta background
- *  - Numbers in warm terracotta / crimson
- *  - Arc with red/green/amber/white call-log segments
- *  - Bottom nav with cream OHPΔH wordmark
+ * Layout: [44px sidebar] | [center: tabs + two dashed metric boxes] | arc overlay (right)
+ * Palette: cool dark-navy tactical interface (see constants/theme.ts).
  */
 import React, { useEffect, useState } from 'react';
 import {
@@ -18,90 +15,46 @@ import {
   View,
 } from 'react-native';
 import ArcTimeline, { ArcSegment } from '../components/ArcTimeline';
+import { COLORS as C, LAYOUT as L } from '../constants/theme';
 
-// ── Colors ────────────────────────────────────────────────
-const C = {
-  navy:        '#0B2340',
-  white:       '#FFFFFF',
-  cream:       '#EDE8D0',
-  dimText:     'rgba(255,255,255,0.45)',
-  border:      'rgba(255,255,255,0.20)',
-  dashed:      'rgba(255,255,255,0.32)',
-  terracotta:  '#C0522A',  // active number + period tab
-  fabRed:      '#A63020',
+// ── Sidebar tabs ──────────────────────────────────────────
+const UPPER_TABS = ['FES', 'WII', 'SLEEP', 'CALL'];
+const LOWER_TABS = ['CAL', 'STEPS', 'HEART', 'CALORIE'];
 
-  // Per-tab accent colors (match V0 render)
-  accentCall:  '#5C6470',  // gray
-  accentCal:   '#0E7490',  // teal
-  accentSteps: '#D97706',  // amber
-  accentHeart: '#E5E7EB',  // light
-  accentCalorie:'#CA8A04', // gold
-};
-
-const L = {
-  sidebarWidth:    52,
-  headerHeight:    52,
-  bottomNavHeight: 64,
-  fabSize:         58,
-  fabRadius:       29,
-};
-
-// ── Tab definitions ───────────────────────────────────────
-interface Tab {
-  label: string;
-  accent: string | null; // null = default white inversion
-}
-
-const UPPER_TABS: Tab[] = [
-  { label: 'FES',   accent: null },
-  { label: 'WII',   accent: null },
-  { label: 'Sleep', accent: null },
-  { label: 'Call',  accent: C.accentCall },
-];
-
-const LOWER_TABS: Tab[] = [
-  { label: 'Cal',     accent: C.accentCal },
-  { label: 'Steps',   accent: C.accentSteps },
-  { label: 'Heart',   accent: C.accentHeart },
-  { label: 'Calorie', accent: C.accentCalorie },
-];
-
-// ── Metric values (empty — stale image state) ─────────────
-const OHPAH_VALUES: Record<string, string> = {};
-const HK_VALUES: Record<string, string> = {};
-
-// ── Arc call-log segments (from reference image) ──────────
+// ── Arc call-log segments (24h, 0 = 0800) ─────────────────
 const CALL_SEGMENTS: ArcSegment[] = [
-  { h1: 0,    h2: 0.8,  color: '#9B2915' }, // red   0800–0848
-  { h1: 0.8,  h2: 1.8,  color: '#2E6B2E' }, // green 0848–0948 (short gap)
-  { h1: 1.8,  h2: 5.5,  color: '#2E6B2E' }, // green 0948–1330
-  { h1: 5.5,  h2: 6.0,  color: '#9B2915' }, // red   1330–1400 (short)
-  { h1: 6.0,  h2: 9.5,  color: '#2E6B2E' }, // green 1400–1730
-  { h1: 9.5,  h2: 11.0, color: '#2E6B2E' }, // green continues
-  { h1: 11.0, h2: 12.0, color: '#C9A227' }, // amber 1900–2000
-  { h1: 12.0, h2: 16.0, color: '#D8D8D8' }, // white 2000–0000
-  { h1: 16.0, h2: 19.0, color: '#2E6B2E' }, // green 0000–0300
-  { h1: 19.0, h2: 20.5, color: '#C9A227' }, // amber 0300–0430
-  { h1: 20.5, h2: 22.0, color: '#2E6B2E' }, // green 0430–0600
-  { h1: 22.0, h2: 24.0, color: '#9B2915' }, // red   0600–0800
+  { h1: 0,    h2: 0.8,  color: C.segRed   },
+  { h1: 0.8,  h2: 5.5,  color: C.segGreen },
+  { h1: 5.5,  h2: 6.0,  color: C.segRed   },
+  { h1: 6.0,  h2: 11.0, color: C.segGreen },
+  { h1: 11.0, h2: 12.0, color: C.segAmber },
+  { h1: 12.0, h2: 16.0, color: C.segWhite },
+  { h1: 16.0, h2: 19.0, color: C.segGreen },
+  { h1: 19.0, h2: 20.5, color: C.segAmber },
+  { h1: 20.5, h2: 22.0, color: C.segGreen },
+  { h1: 22.0, h2: 24.0, color: C.segRed   },
 ];
 
-// ── Dashboard ─────────────────────────────────────────────
 export default function Dashboard() {
-  const [time, setTime] = useState('');
+  // Live clock
+  const [time, setTime] = useState('14:22');
   useEffect(() => {
     const fmt = () => {
       const d = new Date();
-      setTime(`${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`);
+      setTime(
+        `${String(d.getHours()).padStart(2, '0')}:${String(
+          d.getMinutes(),
+        ).padStart(2, '0')}`,
+      );
     };
     fmt();
-    const id = setInterval(fmt, 1000);
+    const id = setInterval(fmt, 10000);
     return () => clearInterval(id);
   }, []);
 
-  const [upperActive, setUpperActive] = useState('FES');
-  const [lowerActive, setLowerActive] = useState<string|null>('Steps');
-  const [periodTab, setPeriodTab]   = useState('Daily');
+  const [upperActive, setUpperActive] = useState('CALL');
+  const [lowerActive, setLowerActive] = useState<string | null>(null);
+  const [periodTab, setPeriodTab] = useState('DAILY');
 
   const [bodyDims, setBodyDims] = useState({ width: 0, height: 0 });
   const onBodyLayout = (e: LayoutChangeEvent) => {
@@ -111,84 +64,81 @@ export default function Dashboard() {
 
   return (
     <SafeAreaView style={s.root}>
-
-      {/* ── Header ── */}
+      {/* ── Top app bar ── */}
       <View style={s.header}>
-        <Text style={s.headerName}>FF M. Harvey – SCFD</Text>
+        <Text style={s.headerName}>FF M. HARVEY – SCFD</Text>
         <Text style={s.headerClock}>{time}</Text>
       </View>
 
       {/* ── Body ── */}
       <View style={s.body} onLayout={onBodyLayout}>
-
-        {/* Left sidebar */}
+        {/* Sidebar */}
         <View style={s.sidebar}>
-          {UPPER_TABS.map((tab) => {
-            const active = tab.label === upperActive;
-            const bg = active
-              ? (tab.accent ?? C.white)
-              : 'transparent';
-            const textColor = active
-              ? (tab.accent ? C.white : C.navy)
-              : C.dimText;
-            return (
-              <TouchableOpacity
-                key={tab.label}
-                style={[s.vtab, { backgroundColor: bg }]}
-                onPress={() => setUpperActive(tab.label)}
-                activeOpacity={0.75}
-              >
-                <Text style={[s.vtabText, { color: textColor }]}>
-                  {tab.label}
-                </Text>
-              </TouchableOpacity>
-            );
-          })}
+          <View style={s.sidebarStack}>
+            {UPPER_TABS.map((label) => {
+              const active = label === upperActive;
+              return (
+                <TouchableOpacity
+                  key={label}
+                  style={[s.vtab, active && s.vtabActive]}
+                  onPress={() => setUpperActive(label)}
+                  activeOpacity={0.75}
+                >
+                  <Text
+                    style={[
+                      s.vtabText,
+                      active ? s.vtabTextActive : s.vtabTextDim,
+                    ]}
+                  >
+                    {label}
+                  </Text>
+                </TouchableOpacity>
+              );
+            })}
+          </View>
 
-          <View style={s.sidebarFabGap} />
-
-          {LOWER_TABS.map((tab) => {
-            const active = tab.label === lowerActive;
-            const bg = active
-              ? (tab.accent ?? C.white)
-              : 'transparent';
-            const textColor = active
-              ? (tab.accent === C.accentHeart ? C.navy : C.white)
-              : C.dimText;
-            return (
-              <TouchableOpacity
-                key={tab.label}
-                style={[s.vtab, { backgroundColor: bg }]}
-                onPress={() => setLowerActive(p => p === tab.label ? null : tab.label)}
-                activeOpacity={0.75}
-              >
-                <Text style={[s.vtabText, { color: textColor }]}>
-                  {tab.label}
-                </Text>
-              </TouchableOpacity>
-            );
-          })}
+          <View style={s.sidebarStackLower}>
+            {LOWER_TABS.map((label) => {
+              const active = label === lowerActive;
+              return (
+                <TouchableOpacity
+                  key={label}
+                  style={[s.vtab, active && s.vtabActive]}
+                  onPress={() =>
+                    setLowerActive((p) => (p === label ? null : label))
+                  }
+                  activeOpacity={0.75}
+                >
+                  <Text
+                    style={[
+                      s.vtabText,
+                      active ? s.vtabTextActive : s.vtabTextFaint,
+                    ]}
+                  >
+                    {label}
+                  </Text>
+                </TouchableOpacity>
+              );
+            })}
+          </View>
         </View>
 
         {/* Center */}
         <View style={s.center}>
-
           {/* Period tabs */}
           <View style={s.periodRow}>
-            {['Daily', 'Lifetime', 'Custom'].map((t, i) => {
+            {['DAILY', 'LIFETIME', 'CUSTOM'].map((t, i) => {
               const active = t === periodTab;
               return (
                 <TouchableOpacity
                   key={t}
-                  style={[
-                    s.periodBtn,
-                    i < 2 && s.periodBtnBorder,
-                    active && s.periodBtnActive,
-                  ]}
+                  style={[s.periodBtn, i < 2 && s.periodBtnBorder]}
                   onPress={() => setPeriodTab(t)}
                   activeOpacity={0.75}
                 >
-                  <Text style={[s.periodText, active && s.periodTextActive]}>
+                  <Text
+                    style={[s.periodText, active && s.periodTextActive]}
+                  >
                     {t}
                   </Text>
                 </TouchableOpacity>
@@ -196,18 +146,24 @@ export default function Dashboard() {
             })}
           </View>
 
-          {/* Upper metric box — empty (stale) */}
-          <View style={s.metricBox} />
+          {/* Upper box — ZONE_STAT */}
+          <View style={[s.metricBox, s.metricBoxCenter]}>
+            <Text style={s.boxLabel}>ZONE_STAT</Text>
+            <Text style={s.zoneNum}>4</Text>
+          </View>
 
           {/* FAB gap */}
           <View style={s.fabGap} />
 
-          {/* Lower metric box — empty (stale) */}
-          <View style={s.metricBox} />
-
+          {/* Lower box — TOTAL_MOVEMENT */}
+          <View style={[s.metricBox, s.metricBoxBottom]}>
+            <Text style={s.boxLabel}>TOTAL_MOVEMENT</Text>
+            <Text style={s.totalNum}>5437</Text>
+            <Text style={s.totalUnit}>STEPS</Text>
+          </View>
         </View>
 
-        {/* Arc timeline */}
+        {/* Arc timeline overlay */}
         {bodyDims.width > 0 && (
           <View style={StyleSheet.absoluteFill} pointerEvents="none">
             <ArcTimeline
@@ -219,10 +175,9 @@ export default function Dashboard() {
         )}
 
         {/* FAB */}
-        <TouchableOpacity style={s.fab} activeOpacity={0.8}>
+        <TouchableOpacity style={s.fab} activeOpacity={0.85}>
           <Text style={s.fabIcon}>+</Text>
         </TouchableOpacity>
-
       </View>
 
       {/* ── Bottom nav ── */}
@@ -230,22 +185,20 @@ export default function Dashboard() {
         <TouchableOpacity style={s.navBtn}>
           <Text style={s.navIcon}>♡</Text>
         </TouchableOpacity>
-        <Text style={s.wordmark}>OHPΔH</Text>
+        <Text style={s.wordmark}>
+          OHP<Text style={s.wordmarkDelta}>Δ</Text>H
+        </Text>
         <TouchableOpacity style={s.navBtn}>
           <Text style={s.navIcon}>☰</Text>
         </TouchableOpacity>
       </View>
-
     </SafeAreaView>
   );
 }
 
 // ── Styles ────────────────────────────────────────────────
 const s = StyleSheet.create({
-  root: {
-    flex: 1,
-    backgroundColor: C.navy,
-  },
+  root: { flex: 1, backgroundColor: C.background },
 
   header: {
     height: L.headerHeight,
@@ -254,125 +207,134 @@ const s = StyleSheet.create({
     justifyContent: 'space-between',
     paddingHorizontal: 16,
     borderBottomWidth: 1,
-    borderBottomColor: C.border,
+    borderBottomColor: C.outlineVariant,
+    backgroundColor: C.background,
   },
   headerName: {
-    color: C.white,
-    fontSize: 15,
-    fontWeight: '600',
-    letterSpacing: 0.2,
+    color: C.primary,
+    fontSize: 12,
+    fontFamily: 'monospace',
+    fontWeight: '500',
+    letterSpacing: 1.5,
   },
   headerClock: {
-    color: C.white,
-    fontSize: 15,
-    fontWeight: '600',
-    letterSpacing: 0.5,
+    color: C.onSurfaceVariant,
+    fontSize: 12,
+    fontFamily: 'monospace',
+    letterSpacing: 1.5,
   },
 
-  body: {
-    flex: 1,
-    flexDirection: 'row',
-    overflow: 'hidden',
-  },
+  body: { flex: 1, flexDirection: 'row', overflow: 'hidden' },
 
   // Sidebar
   sidebar: {
     width: L.sidebarWidth,
     flexShrink: 0,
     alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingVertical: 10,
+    paddingVertical: 16,
     borderRightWidth: 1,
-    borderRightColor: C.border,
+    borderRightColor: C.outlineVariant,
+    backgroundColor: C.surfaceLow,
   },
-  sidebarFabGap: {
-    height: L.fabSize + 16,
-    flexShrink: 0,
-  },
+  sidebarStack: { alignItems: 'center', gap: 24 },
+  sidebarStackLower: { alignItems: 'center', gap: 28, marginTop: 70 },
   vtab: {
     width: L.sidebarWidth,
-    height: 46,
+    paddingVertical: 6,
     alignItems: 'center',
     justifyContent: 'center',
   },
+  vtabActive: { backgroundColor: C.primary, paddingVertical: 12 },
   vtabText: {
     fontSize: 10,
+    fontFamily: 'monospace',
     fontWeight: '700',
-    letterSpacing: 0.8,
-    textTransform: 'uppercase',
+    letterSpacing: 0.5,
     transform: [{ rotate: '-90deg' }],
   },
+  vtabTextActive: { color: C.onPrimary, fontWeight: '700' },
+  vtabTextDim: { color: C.outlineVariant },
+  vtabTextFaint: { color: C.outline, opacity: 0.6 },
 
   // Center
   center: {
     flex: 1,
     flexDirection: 'column',
-    paddingLeft: 10,
-    paddingRight: 6,
+    paddingLeft: 12,
+    paddingRight: 92, // clear the arc overlay on the right
     paddingTop: 4,
-    paddingBottom: 8,
+    paddingBottom: 10,
   },
 
   // Period tabs
   periodRow: {
     flexDirection: 'row',
     borderBottomWidth: 1,
-    borderBottomColor: C.border,
-    marginBottom: 8,
+    borderBottomColor: C.outlineVariant,
+    marginBottom: 24,
     flexShrink: 0,
   },
-  periodBtn: {
-    paddingHorizontal: 14,
-    paddingVertical: 8,
-    borderRadius: 2,
-  },
+  periodBtn: { paddingHorizontal: 14, paddingVertical: 8 },
   periodBtnBorder: {
     borderRightWidth: 1,
-    borderRightColor: C.border,
-  },
-  periodBtnActive: {
-    backgroundColor: C.terracotta,
-    borderRadius: 3,
+    borderRightColor: C.outlineVariant,
   },
   periodText: {
-    color: C.dimText,
-    fontSize: 13,
+    color: C.onSurfaceVariant,
+    fontSize: 10,
+    fontFamily: 'monospace',
     fontWeight: '500',
+    letterSpacing: 1,
+    opacity: 0.5,
   },
-  periodTextActive: {
-    color: C.white,
-    fontWeight: '700',
-  },
+  periodTextActive: { color: C.primary, opacity: 1 },
 
   // Metric boxes
   metricBox: {
     flex: 1,
-    borderWidth: 1.5,
-    borderColor: C.dashed,
+    borderWidth: 1,
+    borderColor: C.outlineVariant,
     borderStyle: 'dashed',
-    borderRadius: 4,
-    padding: 12,
-    justifyContent: 'flex-end',
+    position: 'relative',
   },
-  bigNum: {
-    fontSize: 72,
-    fontWeight: '700',
+  metricBoxCenter: { alignItems: 'center', justifyContent: 'center' },
+  metricBoxBottom: { justifyContent: 'flex-end', padding: 24 },
+  boxLabel: {
+    position: 'absolute',
+    top: 8,
+    left: 8,
+    color: C.outlineVariant,
+    fontSize: 9,
+    fontFamily: 'monospace',
+    letterSpacing: 1,
+  },
+  zoneNum: {
+    fontFamily: 'Georgia',
     fontStyle: 'italic',
-    color: C.terracotta,
-    lineHeight: 76,
+    fontSize: 120,
+    lineHeight: 124,
+    color: C.primary,
+    opacity: 0.9,
     includeFontPadding: false,
   },
-  metricLabel: {
-    fontSize: 20,
-    fontWeight: '700',
-    color: C.white,
-    marginTop: 4,
+  totalNum: {
+    fontFamily: 'Georgia',
+    fontStyle: 'italic',
+    fontSize: 64,
+    lineHeight: 66,
+    color: C.onSurface,
+    letterSpacing: -1,
+    includeFontPadding: false,
+  },
+  totalUnit: {
+    marginTop: 8,
+    color: C.outlineVariant,
+    fontSize: 12,
+    fontFamily: 'monospace',
+    letterSpacing: 1.5,
   },
 
-  fabGap: {
-    height: L.fabSize + 4,
-    flexShrink: 0,
-  },
+  fabGap: { height: L.fabSize + 4, flexShrink: 0 },
 
   // FAB
   fab: {
@@ -383,7 +345,7 @@ const s = StyleSheet.create({
     width: L.fabSize,
     height: L.fabSize,
     borderRadius: L.fabRadius,
-    backgroundColor: C.fabRed,
+    backgroundColor: C.errorContainer,
     alignItems: 'center',
     justifyContent: 'center',
     zIndex: 10,
@@ -394,10 +356,10 @@ const s = StyleSheet.create({
     elevation: 8,
   },
   fabIcon: {
-    color: C.white,
-    fontSize: 32,
+    color: C.onErrorContainer,
+    fontSize: 30,
     fontWeight: '300',
-    lineHeight: 36,
+    lineHeight: 34,
   },
 
   // Bottom nav
@@ -406,10 +368,10 @@ const s = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingHorizontal: 24,
+    paddingHorizontal: 16,
     borderTopWidth: 1,
-    borderTopColor: C.border,
-    backgroundColor: C.navy,
+    borderTopColor: C.outlineVariant,
+    backgroundColor: C.surfaceHighest,
   },
   navBtn: {
     width: 36,
@@ -417,14 +379,12 @@ const s = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  navIcon: {
-    color: C.cream,
-    fontSize: 20,
-  },
+  navIcon: { color: C.onSurfaceVariant, fontSize: 20 },
   wordmark: {
-    color: C.cream,
-    fontSize: 24,
+    color: C.onSurface,
+    fontSize: 20,
     fontWeight: '800',
-    letterSpacing: 4,
+    letterSpacing: 6,
   },
+  wordmarkDelta: { color: C.primary },
 });

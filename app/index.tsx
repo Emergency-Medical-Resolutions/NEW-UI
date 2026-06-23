@@ -1,95 +1,44 @@
 /**
- * Splash → Transition → Dashboard
- *
- * Phase 1: splash.mp4 loops while the app "loads"
- *          SplashOverlay fades in on top with brand mark + wordmark + tagline
- * Phase 2: transition.mp4 plays once (pole bends into dashboard arc)
- * Phase 3: navigate to /dashboard
+ * Splash screen — static "Tactical Medical Interface" branded screen.
+ * Faithful port of .stitch/designs/splash-screen.html:
+ *   deep navy (#051424) base · crimson + white atmospheric glows · vignette ·
+ *   Δ brand mark · OHPAH wordmark · "Your Record. Always." tagline
+ * Displays briefly, then fades into the dashboard.
  */
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef } from 'react';
 import { Animated, StyleSheet, View } from 'react-native';
-import { VideoView, useVideoPlayer } from 'expo-video';
 import { router } from 'expo-router';
 import SplashOverlay from '../components/SplashOverlay';
+import { COLORS as C } from '../constants/theme';
 
-type Phase = 'splash' | 'transition';
-
-// Match these to actual video durations.
-const SPLASH_DURATION = 3400;
-const TRANSITION_DURATION = 4800;
+const HOLD_DURATION = 3200; // ms on screen before transition
 
 export default function SplashScreen() {
-  const [phase, setPhase] = useState<Phase>('splash');
   const fadeAnim = useRef(new Animated.Value(1)).current;
 
-  const splashPlayer = useVideoPlayer(
-    require('../assets/splash.mp4'),
-    (p) => {
-      p.loop = true;
-      p.muted = true;
-      p.play();
-    },
-  );
-
-  const transPlayer = useVideoPlayer(
-    require('../assets/transition.mp4'),
-    (p) => {
-      p.loop = false;
-      p.muted = true;
-    },
-  );
-
-  // Phase 1 → 2
   useEffect(() => {
     const t = setTimeout(() => {
       Animated.timing(fadeAnim, {
         toValue: 0,
-        duration: 400,
-        useNativeDriver: true,
-      }).start(() => {
-        setPhase('transition');
-        fadeAnim.setValue(1);
-        transPlayer.play();
-      });
-    }, SPLASH_DURATION);
-    return () => clearTimeout(t);
-  }, []);
-
-  // Phase 2 → 3
-  useEffect(() => {
-    if (phase !== 'transition') return;
-    const t = setTimeout(() => {
-      Animated.timing(fadeAnim, {
-        toValue: 0,
-        duration: 300,
+        duration: 600,
         useNativeDriver: true,
       }).start(() => router.replace('/dashboard'));
-    }, TRANSITION_DURATION);
+    }, HOLD_DURATION);
     return () => clearTimeout(t);
-  }, [phase]);
+  }, []);
 
   return (
     <View style={styles.container}>
       <Animated.View style={[StyleSheet.absoluteFill, { opacity: fadeAnim }]}>
-        {phase === 'splash' ? (
-          <>
-            <VideoView
-              player={splashPlayer}
-              style={StyleSheet.absoluteFill}
-              contentFit="cover"
-              nativeControls={false}
-            />
-            {/* Brand overlay fades in 400ms after video starts */}
-            <SplashOverlay entranceDelay={400} />
-          </>
-        ) : (
-          <VideoView
-            player={transPlayer}
-            style={StyleSheet.absoluteFill}
-            contentFit="cover"
-            nativeControls={false}
-          />
-        )}
+        {/* Atmospheric glows (behind branding) */}
+        <View style={styles.crimsonGlow} pointerEvents="none" />
+        <View style={styles.whiteGlow} pointerEvents="none" />
+
+        {/* Branding */}
+        <SplashOverlay entranceDelay={250} />
+
+        {/* Vignette for the tactical, military feel */}
+        <View style={styles.vignette} pointerEvents="none" />
       </Animated.View>
     </View>
   );
@@ -98,6 +47,44 @@ export default function SplashScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#051424',
+    backgroundColor: C.background, // #051424
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  crimsonGlow: {
+    position: 'absolute',
+    top: '50%',
+    left: '50%',
+    width: 320,
+    height: 320,
+    marginLeft: -160,
+    marginTop: -160,
+    borderRadius: 160,
+    backgroundColor: 'transparent',
+    shadowColor: '#7f1d1d',
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0.6,
+    shadowRadius: 110,
+  },
+  whiteGlow: {
+    position: 'absolute',
+    top: '46%',
+    left: '50%',
+    width: 220,
+    height: 220,
+    marginLeft: -110,
+    marginTop: -110,
+    borderRadius: 110,
+    backgroundColor: 'transparent',
+    shadowColor: C.primary,
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0.18,
+    shadowRadius: 70,
+  },
+  vignette: {
+    ...StyleSheet.absoluteFillObject,
+    shadowColor: '#000',
+    // Inset-like darkening at the edges via a large inner shadow approximation
+    backgroundColor: 'transparent',
   },
 });
